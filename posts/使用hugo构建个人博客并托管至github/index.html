@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>使用Hugo构建个人博客并托管至Github Pages - What are you thinking about?</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  <meta name="description" content="网上冲浪看到别人的博客好简洁好好看，我也要整一套🤓。But！来来回回在网上查询，又有时候忘记要干啥整了一天才搞定🙈。这里记录下我「贪」的辛苦🥹
+明确目标 首先，我们要明确一下自己要干什么？铭记初心，方得始终，深有体会😕
+搭建博客，拥抱批评 将博客内容托管至Github Pages，进行网站白嫖。 那么如何搭建博客呢？我这次使用的是Hugo。其实中间有倒腾过Hexo、Netlify全都夭折。 其实使用静态网站构建框架生成本地博客挺快捷、简单的，时间主要浪费在了代码托管那一块儿。
+Hugo 一开始是使用的Hexo进行博客的生成，但是在搜索代码托管的过程中发现有人说，Hugo更加方便、易用。
+哇！看到这里岂能坐视不管？咱也用！当时已经是4 AM了🥺，这种状态有时候真是让人又爱又恨☹️
+说干就干。进入Hugo官网，就看见上面写着「The world&rsquo;s fastest framework for buiding websites」🧐
+安装Hugo 这里跟着官网来就好了。我是今年刚买的Mac，所以这里就记录下Mac下的安装过程。
+一定要有git环境，因为Hugo的主题要从github上获取，没有git拿不到。
+# 这里brew是安装了Homebrew，用来管理各种包的安装，可以理解为软件管理 brew install hugo # 创建一个website，因为我是要搭建博客，所以这里起名叫blog # 这个命令会创建blog目录其中会有一些空的结构目录以备后用 hugo new site blog cd blog # 开始获取博客主题 git init git submodule add https://github.com/nanxiaobei/hugo-paper # 将主题配置写入hugo.toml配置文件 echo &#34;theme = &#39;paper&#39;&#34; &gt;&gt; hugo.toml # 启动本地服务 hugo server # 该命令可以生成静态资源，主要为资源托管做准备 # 它会生成一个public/，里面的文件就是博客的静态资源 hugo 配置Hugo 这里最重要的就是baseURL，如果配置的不对，那么资源部署到GitHub之后就会导致css等资源路径找不到而造成页面样式丢失。
+# 可以理解为是部署到Github之后，博客网站的基础路径 # 一定要带上GitHub上的仓库名哦！这个地址可以在配置公开仓库的Github Pages的设置那里拿到。有一个`Visit site`按钮，点击即可进入博客 baseURL = &#39;https://xpzero." />
+  <meta name="author" content="柯寒" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="https://xpzero.github.io/blog/main.min.css" />
+
+  
+
+  
+     
+  <link rel="preload" as="image" href="https://xpzero.github.io/blog/theme.svg" />
+
+  
+  
+  
+  
+
+  
+  <link rel="preload" as="image" href="https://xpzero.github.io/blog/github.svg" />
+  
+  
+
+  
+  
+  <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css"
+  integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI"
+  crossorigin="anonymous"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"
+  integrity="sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t"
+  crossorigin="anonymous"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js"
+  integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+  crossorigin="anonymous"
+  onload="renderMathInElement(document.body);"
+></script>
+
+  
+  
+  
+
+  
+  <link rel="icon" href="https://xpzero.github.io/blog/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://xpzero.github.io/blog/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.117.0">
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  <meta property="og:title" content="使用Hugo构建个人博客并托管至Github Pages" />
+<meta property="og:description" content="网上冲浪看到别人的博客好简洁好好看，我也要整一套🤓。But！来来回回在网上查询，又有时候忘记要干啥整了一天才搞定🙈。这里记录下我「贪」的辛苦🥹
+明确目标 首先，我们要明确一下自己要干什么？铭记初心，方得始终，深有体会😕
+搭建博客，拥抱批评 将博客内容托管至Github Pages，进行网站白嫖。 那么如何搭建博客呢？我这次使用的是Hugo。其实中间有倒腾过Hexo、Netlify全都夭折。 其实使用静态网站构建框架生成本地博客挺快捷、简单的，时间主要浪费在了代码托管那一块儿。
+Hugo 一开始是使用的Hexo进行博客的生成，但是在搜索代码托管的过程中发现有人说，Hugo更加方便、易用。
+哇！看到这里岂能坐视不管？咱也用！当时已经是4 AM了🥺，这种状态有时候真是让人又爱又恨☹️
+说干就干。进入Hugo官网，就看见上面写着「The world&rsquo;s fastest framework for buiding websites」🧐
+安装Hugo 这里跟着官网来就好了。我是今年刚买的Mac，所以这里就记录下Mac下的安装过程。
+一定要有git环境，因为Hugo的主题要从github上获取，没有git拿不到。
+# 这里brew是安装了Homebrew，用来管理各种包的安装，可以理解为软件管理 brew install hugo # 创建一个website，因为我是要搭建博客，所以这里起名叫blog # 这个命令会创建blog目录其中会有一些空的结构目录以备后用 hugo new site blog cd blog # 开始获取博客主题 git init git submodule add https://github.com/nanxiaobei/hugo-paper # 将主题配置写入hugo.toml配置文件 echo &#34;theme = &#39;paper&#39;&#34; &gt;&gt; hugo.toml # 启动本地服务 hugo server # 该命令可以生成静态资源，主要为资源托管做准备 # 它会生成一个public/，里面的文件就是博客的静态资源 hugo 配置Hugo 这里最重要的就是baseURL，如果配置的不对，那么资源部署到GitHub之后就会导致css等资源路径找不到而造成页面样式丢失。
+# 可以理解为是部署到Github之后，博客网站的基础路径 # 一定要带上GitHub上的仓库名哦！这个地址可以在配置公开仓库的Github Pages的设置那里拿到。有一个`Visit site`按钮，点击即可进入博客 baseURL = &#39;https://xpzero." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://xpzero.github.io/blog/posts/%E4%BD%BF%E7%94%A8hugo%E6%9E%84%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E5%B9%B6%E6%89%98%E7%AE%A1%E8%87%B3github/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-08-13T04:26:45+08:00" />
+<meta property="article:modified_time" content="2023-08-13T04:26:45+08:00" />
+
+  
+  <meta itemprop="name" content="使用Hugo构建个人博客并托管至Github Pages">
+<meta itemprop="description" content="网上冲浪看到别人的博客好简洁好好看，我也要整一套🤓。But！来来回回在网上查询，又有时候忘记要干啥整了一天才搞定🙈。这里记录下我「贪」的辛苦🥹
+明确目标 首先，我们要明确一下自己要干什么？铭记初心，方得始终，深有体会😕
+搭建博客，拥抱批评 将博客内容托管至Github Pages，进行网站白嫖。 那么如何搭建博客呢？我这次使用的是Hugo。其实中间有倒腾过Hexo、Netlify全都夭折。 其实使用静态网站构建框架生成本地博客挺快捷、简单的，时间主要浪费在了代码托管那一块儿。
+Hugo 一开始是使用的Hexo进行博客的生成，但是在搜索代码托管的过程中发现有人说，Hugo更加方便、易用。
+哇！看到这里岂能坐视不管？咱也用！当时已经是4 AM了🥺，这种状态有时候真是让人又爱又恨☹️
+说干就干。进入Hugo官网，就看见上面写着「The world&rsquo;s fastest framework for buiding websites」🧐
+安装Hugo 这里跟着官网来就好了。我是今年刚买的Mac，所以这里就记录下Mac下的安装过程。
+一定要有git环境，因为Hugo的主题要从github上获取，没有git拿不到。
+# 这里brew是安装了Homebrew，用来管理各种包的安装，可以理解为软件管理 brew install hugo # 创建一个website，因为我是要搭建博客，所以这里起名叫blog # 这个命令会创建blog目录其中会有一些空的结构目录以备后用 hugo new site blog cd blog # 开始获取博客主题 git init git submodule add https://github.com/nanxiaobei/hugo-paper # 将主题配置写入hugo.toml配置文件 echo &#34;theme = &#39;paper&#39;&#34; &gt;&gt; hugo.toml # 启动本地服务 hugo server # 该命令可以生成静态资源，主要为资源托管做准备 # 它会生成一个public/，里面的文件就是博客的静态资源 hugo 配置Hugo 这里最重要的就是baseURL，如果配置的不对，那么资源部署到GitHub之后就会导致css等资源路径找不到而造成页面样式丢失。
+# 可以理解为是部署到Github之后，博客网站的基础路径 # 一定要带上GitHub上的仓库名哦！这个地址可以在配置公开仓库的Github Pages的设置那里拿到。有一个`Visit site`按钮，点击即可进入博客 baseURL = &#39;https://xpzero."><meta itemprop="datePublished" content="2023-08-13T04:26:45+08:00" />
+<meta itemprop="dateModified" content="2023-08-13T04:26:45+08:00" />
+<meta itemprop="wordCount" content="298">
+<meta itemprop="keywords" content="" />
+  
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="使用Hugo构建个人博客并托管至Github Pages"/>
+<meta name="twitter:description" content="网上冲浪看到别人的博客好简洁好好看，我也要整一套🤓。But！来来回回在网上查询，又有时候忘记要干啥整了一天才搞定🙈。这里记录下我「贪」的辛苦🥹
+明确目标 首先，我们要明确一下自己要干什么？铭记初心，方得始终，深有体会😕
+搭建博客，拥抱批评 将博客内容托管至Github Pages，进行网站白嫖。 那么如何搭建博客呢？我这次使用的是Hugo。其实中间有倒腾过Hexo、Netlify全都夭折。 其实使用静态网站构建框架生成本地博客挺快捷、简单的，时间主要浪费在了代码托管那一块儿。
+Hugo 一开始是使用的Hexo进行博客的生成，但是在搜索代码托管的过程中发现有人说，Hugo更加方便、易用。
+哇！看到这里岂能坐视不管？咱也用！当时已经是4 AM了🥺，这种状态有时候真是让人又爱又恨☹️
+说干就干。进入Hugo官网，就看见上面写着「The world&rsquo;s fastest framework for buiding websites」🧐
+安装Hugo 这里跟着官网来就好了。我是今年刚买的Mac，所以这里就记录下Mac下的安装过程。
+一定要有git环境，因为Hugo的主题要从github上获取，没有git拿不到。
+# 这里brew是安装了Homebrew，用来管理各种包的安装，可以理解为软件管理 brew install hugo # 创建一个website，因为我是要搭建博客，所以这里起名叫blog # 这个命令会创建blog目录其中会有一些空的结构目录以备后用 hugo new site blog cd blog # 开始获取博客主题 git init git submodule add https://github.com/nanxiaobei/hugo-paper # 将主题配置写入hugo.toml配置文件 echo &#34;theme = &#39;paper&#39;&#34; &gt;&gt; hugo.toml # 启动本地服务 hugo server # 该命令可以生成静态资源，主要为资源托管做准备 # 它会生成一个public/，里面的文件就是博客的静态资源 hugo 配置Hugo 这里最重要的就是baseURL，如果配置的不对，那么资源部署到GitHub之后就会导致css等资源路径找不到而造成页面样式丢失。
+# 可以理解为是部署到Github之后，博客网站的基础路径 # 一定要带上GitHub上的仓库名哦！这个地址可以在配置公开仓库的Github Pages的设置那里拿到。有一个`Visit site`按钮，点击即可进入博客 baseURL = &#39;https://xpzero."/>
+
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="https://xpzero.github.io/blog"
+      >What are you thinking about?</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.svg)_left_center/cover_no-repeat] dark:invert dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/xpzero"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">使用Hugo构建个人博客并托管至Github Pages</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Aug 13, 2023</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><p>网上冲浪看到别人的博客好简洁好好看，我也要整一套🤓。But！来来回回在网上查询，又有时候忘记要干啥整了一天才搞定🙈。这里记录下我「贪」的辛苦🥹</p>
+<h2 id="明确目标">明确目标</h2>
+<p>首先，我们要明确一下自己要干什么？铭记初心，方得始终，深有体会😕</p>
+<ol>
+<li>搭建博客，拥抱批评</li>
+<li>将博客内容托管至Github Pages，进行网站白嫖。</li>
+</ol>
+<p>那么如何搭建博客呢？我这次使用的是Hugo。其实中间有倒腾过Hexo、Netlify全都夭折。
+其实使用静态网站构建框架生成本地博客挺快捷、简单的，时间主要浪费在了代码托管那一块儿。</p>
+<h2 id="hugo">Hugo</h2>
+<p>一开始是使用的Hexo进行博客的生成，但是在搜索代码托管的过程中发现有人说，Hugo更加方便、易用。</p>
+<p><img src="/blog/images/useHugo_why-hugo.png" alt="Why Hugo"></p>
+<p>哇！看到这里岂能坐视不管？咱也用！当时已经是4 AM了🥺，这种状态有时候真是让人又爱又恨☹️</p>
+<p>说干就干。进入<a href="https://gohugo.io/">Hugo</a>官网，就看见上面写着「The world&rsquo;s fastest framework for buiding websites」🧐</p>
+<p><img src="/blog/images/useHugo_fastest.png" alt="The world&rsquo;s fastest framework for buiding websites」"></p>
+<h3 id="安装hugo">安装Hugo</h3>
+<p>这里跟着官网来就好了。我是今年刚买的Mac，所以这里就记录下Mac下的安装过程。</p>
+<p>一定要有<code>git</code>环境，因为<code>Hugo</code>的主题要从<code>github</code>上获取，没有<code>git</code>拿不到。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># 这里brew是安装了Homebrew，用来管理各种包的安装，可以理解为软件管理</span>
+</span></span><span style="display:flex;"><span>brew install hugo
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># 创建一个website，因为我是要搭建博客，所以这里起名叫blog</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 这个命令会创建blog目录其中会有一些空的结构目录以备后用</span>
+</span></span><span style="display:flex;"><span>hugo new site blog
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd blog
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 开始获取博客主题</span>
+</span></span><span style="display:flex;"><span>git init
+</span></span><span style="display:flex;"><span>git submodule add https://github.com/nanxiaobei/hugo-paper
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 将主题配置写入hugo.toml配置文件</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;theme = &#39;paper&#39;&#34;</span> &gt;&gt; hugo.toml
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># 启动本地服务</span>
+</span></span><span style="display:flex;"><span>hugo server
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># 该命令可以生成静态资源，主要为资源托管做准备</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 它会生成一个public/，里面的文件就是博客的静态资源</span>
+</span></span><span style="display:flex;"><span>hugo
+</span></span></code></pre></div><h3 id="配置hugo">配置Hugo</h3>
+<p>这里最重要的就是<code>baseURL</code>，如果配置的不对，那么资源部署到GitHub之后就会导致<code>css</code>等资源路径找不到而造成页面样式丢失。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#75715e"># 可以理解为是部署到Github之后，博客网站的基础路径</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 一定要带上GitHub上的仓库名哦！这个地址可以在配置公开仓库的Github Pages的设置那里拿到。有一个`Visit site`按钮，点击即可进入博客</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">baseURL</span> = <span style="color:#e6db74">&#39;https://xpzero.github.io/blog&#39;</span>
+</span></span></code></pre></div><p>到此，一个博客网站就算是已经基本完成了，博客中分享的文章就需要我自己后续再补充调整了。现在可以开始这篇文章的重要部分了！</p>
+<h2 id="托管博客资源到github">托管博客资源到GitHub</h2>
+<p><strong>有一个情况要先说明一下，GitHub的GitHub Pages使用的前提是仓库是公开的，不能是私有的。</strong></p>
+<p><img src="/blog/images/useHugo_enable-pages.png" alt="Github Pages configure"></p>
+<p>这里要先思考一下，我们托管博客资源是把包括主题等在内的所有文件都放在公开仓库吗？有点「裸奔」的感觉🤨。但是不把所有的博客资源做一个版本控制，似乎也不习惯，该怎么办呢？</p>
+<p>经过不懈的努力，一直搜啊搜，了解到了可以通过创建两个仓库，并建立两个仓库之间的连接来托管博客资源到GitHub。两个仓库的作用如下：</p>
+<ul>
+<li>
+<p>私有仓库，存放所有包括主题等资源在内的源文件</p>
+</li>
+<li>
+<p>公开仓库，仅存放通过<code>hugo</code>命令生成的<code>public/</code>下的文件</p>
+</li>
+<li>
+<p>二者建立联系，当私有仓库有变动时，公开仓库也跟着变动</p>
+<ul>
+<li>通过<code>shell</code>脚本，当私有仓库的内容被更新后，执行脚本将私有仓库中的<code>public/</code>内的所有文件上传至公开仓库的指定分支，完成部署</li>
+<li>通过在私有仓库创建<code>Github Actions</code>的<code>workflows</code>的方式自动完成上面的动作👏。</li>
+</ul>
+</li>
+</ul>
+<p>本着能自动就不手动的原则，当然要采用<code>Github Actions</code>的方式让它自动完成，别来烦我咯😎。</p>
+<h3 id="授权问题">授权问题</h3>
+<p>就是因为这个问题，时间如流水般一去不返。😑</p>
+<p><img src="/blog/images/useHugo_auth_pre.png" alt="pre-auth"></p>
+<p>因为公开仓库和私有仓库是两个单独的仓库，所以需要使用<code>Personal access token</code>.其目的是为了让<code>worksflows</code>可以使用<code>git</code>的api</p>
+<h4 id="创建personal-access-token">创建<code>Personal access token</code></h4>
+<p>这里有两种方式，官方推荐的第一种，我实践的时候使用的第二种😛</p>
+<ul>
+<li><a href="'https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token'">Creating a fine-grained personal access token</a></li>
+<li><a href="'https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic'">Creating a personal access token (classic)</a></li>
+</ul>
+<p>开始创建</p>
+<p><img src="/blog/images/useHugo_pat-pre.png" alt="pat-pre"><img src="/blog/images/useHugo_pat-pre2.png" alt="pat-pre"></p>
+<p>这里因为我创建过<code>Personal access token</code>，所以跟没有创建过的不一样。点击<code>Generate new token</code>可以再建。点击之前创建过的<code>token</code>, 可以进去选择重新生成。
+<img src="/blog/images/useHugo_pat.png" alt="pat-pre"></p>
+<p>在配置页面勾选完权限，设置名字后保存，会生成一串<code>key</code>，稍微存一下，要给私有库创建<code>Secrets</code>用，也可以重新生成。</p>
+<h4 id="私有库添加secrets">私有库添加<code>Secrets</code></h4>
+<p>其目的是为了加密<code>Personal access token</code>.如果有一天，我们更换了<code>Personal access token</code>，就要同步修改<code>workflows</code>。使用被加密的<code>token</code>，不仅可以在<code>workflows</code>中动态读取<code>token</code>还可以让信息更加安全。</p>
+<p><img src="/blog/images/useHugo_secrets.png" alt="create secrets"><img src="/blog/images/useHugo_secrets2.png" alt="secrets2"></p>
+<p>如果权限没配好在<code>workflows</code>运行的时候就会出现<code>fatal: could not read Username for 'https://github.com': No such device or address</code>的报错</p>
+<h3 id="创建公开仓库">创建公开仓库</h3>
+<p><img src="/blog/images/useHugo_public-repo.png" alt="public repo"></p>
+<p>记得配置<code>Github Pages</code>。如果公开仓库有<code>gh-pages</code>分支，该仓库会被默认设置<code>Github Pages</code>，且其触发部署的分支即为<code>gh-pages</code>.该分支被<code>push</code>后会触发资源部署机制自动将资源部署发布。下面的例子是使用的<code>main</code>分支，需要手动设置<code>Github Pages</code>，仍然使用<strong>分支触发</strong>的方式进行资源部署.</p>
+<p><img src="/blog/images/useHugo_public-pages.png" alt="public pages"></p>
+<h3 id="创建私有仓库">创建私有仓库</h3>
+<p><img src="/blog/images/useHugo_create-repo.png" alt="创建私有仓库"></p>
+<h3 id="创建workflows">创建workflows</h3>
+<p>要在<strong>私有仓库</strong>创建<code>workflows</code>.</p>
+<p><img src="/blog/images/useHugo_create-workflows.png" alt="创建workflows"></p>
+<p>这里我们选安装自己的<code>workflows</code>就可以了，为避免出错其配置内容尽量和我下面给出的配置内容一致。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#75715e"># Sample workflow for building and deploying a Hugo site to GitHub Pages</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#a6e22e">Deploy</span> <span style="color:#a6e22e">Hugo</span> <span style="color:#a6e22e">site</span> <span style="color:#a6e22e">to</span> <span style="color:#a6e22e">Pages</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">on</span><span style="color:#960050;background-color:#1e0010">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># push 触发actions。Runs on pushes targeting the default branch</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">push</span><span style="color:#960050;background-color:#1e0010">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># main分支上的push触发actions</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">branches</span><span style="color:#960050;background-color:#1e0010">:</span> [<span style="color:#e6db74">&#34;main&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Allows you to run this workflow manually from the Actions tab</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># workflow_dispatch:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">jobs</span><span style="color:#960050;background-color:#1e0010">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Build job</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">build</span><span style="color:#960050;background-color:#1e0010">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">runs-on</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#a6e22e">ubuntu-latest</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">env</span><span style="color:#960050;background-color:#1e0010">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">HUGO_VERSION</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#ae81ff">0.117</span>.<span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">steps</span><span style="color:#960050;background-color:#1e0010">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">-</span> <span style="color:#a6e22e">name</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#a6e22e">Checkout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">uses</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#a6e22e">actions</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#a6e22e">checkout</span><span style="color:#960050;background-color:#1e0010">@</span><span style="color:#a6e22e">v3</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">-</span> <span style="color:#a6e22e">name</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#a6e22e">push</span> <span style="color:#a6e22e">to</span> <span style="color:#a6e22e">Github</span> <span style="color:#a6e22e">Pages</span> <span style="color:#a6e22e">repository</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">working-directory</span><span style="color:#960050;background-color:#1e0010">:</span> .<span style="color:#960050;background-color:#1e0010">/</span><span style="color:#a6e22e">public</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># echo &#34;&lt;domain&gt;&#34; &gt; CNAME 使用自定义域名的话，可以把这个加在git init上面.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 这些地方需要修改：YOUR_NAME（可以随意）、YOUR_EMAIL、YOUR_COMMIT_MESSAGE、YOUR_PERSONAL_ACCESS_TOKEN、</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># YOUR_USERNAME（你的github账户名）、YOUR_PUBLIC_REPO_NAME（公开仓库名）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">run</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#960050;background-color:#1e0010">|</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">git</span> <span style="color:#a6e22e">init</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">git</span> <span style="color:#a6e22e">checkout</span> <span style="color:#a6e22e">-b</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">git</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">-A</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">git</span> <span style="color:#a6e22e">-c</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">name</span>=<span style="color:#e6db74">&#34;YOUR_NAME&#34;</span> <span style="color:#a6e22e">-c</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">email</span>=<span style="color:#e6db74">&#34;YOUR_EMAIL&#34;</span> <span style="color:#a6e22e">commit</span> <span style="color:#a6e22e">-m</span> <span style="color:#e6db74">&#34;YOUR_COMMIT_MESSAGE&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">git</span> <span style="color:#a6e22e">remote</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">origin</span> <span style="color:#a6e22e">https</span><span style="color:#960050;background-color:#1e0010">://$</span>{{<span style="color:#a6e22e">secrets</span>.<span style="color:#a6e22e">YOUR_PERSONAL_ACCESS_TOKEN</span>}}<span style="color:#960050;background-color:#1e0010">@</span><span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#a6e22e">YOUR_USERNAME</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#a6e22e">YOUR_PUBLIC_REPO_NAME</span>.<span style="color:#a6e22e">git</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">git</span> <span style="color:#a6e22e">push</span> <span style="color:#a6e22e">origin</span> <span style="color:#a6e22e">main</span> <span style="color:#a6e22e">-f</span> <span style="color:#a6e22e">-q</span>
+</span></span></code></pre></div><p><img src="/blog/images/useHugo_edit-workflows.png" alt="edit workflows"></p>
+<h3 id="撒花">撒花🎉</h3>
+<p><code>workflows</code>的变更被<code>commit</code>之后，就可以在<code>Actions</code>面板中看到<code>workflows</code>的运行记录了。</p>
+<p><img src="/blog/images/useHugo_workflows.png" alt="workflows log"></p>
+<p>另外，公开仓库也因为有之前配置<code>Github Pages</code>时设置的因分支代码改动而触发部署的配置，在<code>Actions</code>面板也能看到对应的部署记录</p>
+<p><img src="/blog/images/useHugo_finish.png" alt="finish"></p>
+<h1 id="感恩">感恩</h1>
+<p><a href="https://phoenixnap.com/kb/git-ssh-vs-https">SSH vs. HTTPS for Git: Which One Should You Use?</a></p>
+<p><a href="https://www.cnblogs.com/scofi/p/6617394.html">SSH公钥登录原理</a></p>
+<p><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github">About authentication to GitHub</a></p>
+<p><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens">Managing your personal access tokens
+</a>
+<a href="https://juejin.cn/post/7120474763910676488">GitHub 私有仓库免费开启 GitHub Pages 的可行性方案</a></p>
+<p><a href="https://juejin.cn/post/7008847699919241229">通过 GitHub Actions 实现私有仓库的免费 Github Pages 部署</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/37752930">如何使用Hugo在GitHub Pages上搭建免费个人网站</a></p>
+<p><a href="https://www.wenhui.space/docs/04-build-blog-site/hugo_deploy_to_github/">将hugo博客部署到github</a></p>
+<p><a href="https://kuang.netlify.app/blog/hugo.html">HUGO</a></p>
+</section>
+
+  
+  
+
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="https://xpzero.github.io/blog/posts/react%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/"
+      ><span class="mr-1.5">←</span><span>React学习记录-前置知识</span></a
+    >
+    
+    
+  </nav>
+  
+
+  
+  
+  <div class="mt-24" id="disqus_thread"></div>
+  <script>
+    const disqusShortname = 'YOUR_DISQUS_SHORTNAME';
+    const script = document.createElement('script');
+    script.src = 'https://' + disqusShortname + '.disqus.com/embed.js';
+    script.setAttribute('data-timestamp', +new Date());
+    document.head.appendChild(script);
+  </script>
+  
+
+  
+  
+  <div class="mt-24" id="graphcomment"></div>
+  <script type="text/javascript">
+    var __semio__params = {
+      graphcommentId: 'YOUR_GRAPH_COMMENT_ID',
+      behaviour: {
+        
+      },
+      
+    };
+
+    function __semio__onload() {
+      __semio__gc_graphlogin(__semio__params);
+    }
+
+    (function () {
+      var gc = document.createElement('script');
+      gc.type = 'text/javascript';
+      gc.async = true;
+      gc.onload = __semio__onload;
+      gc.defer = true;
+      gc.src =
+        'https://integration.graphcomment.com/gc_graphlogin.js?' + Date.now();
+      (
+        document.getElementsByTagName('head')[0] ||
+        document.getElementsByTagName('body')[0]
+      ).appendChild(gc);
+    })();
+  </script>
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2023
+    <a class="link" href="https://xpzero.github.io/blog">What are you thinking about?</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

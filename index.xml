@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>What are you thinking about?</title>
+    <link>https://xpzero.github.io/blog/</link>
+    <description>Recent content on What are you thinking about?</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 19 Aug 2023 20:01:20 +0800</lastBuildDate><atom:link href="https://xpzero.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>React学习记录-前置知识</title>
+      <link>https://xpzero.github.io/blog/posts/react%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/</link>
+      <pubDate>Sat, 19 Aug 2023 20:01:20 +0800</pubDate>
+      
+      <guid>https://xpzero.github.io/blog/posts/react%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/</guid>
+      <description>React 是使用JavaScript构建快速响应的大型web应用程序的首选方式
+影响快速相应的场景：
+「CPU」瓶颈：大计算量或设备性能不足导致的页面卡帧、卡顿 「IO瓶颈」：网络请求的时延长导致页面不能快速根据数据进行页面渲染导致页面白屏时间长，卡顿。 浏览器基本知识 浏览器进程 主进程 GPU进程 插件进程 渲染进程 js引擎线程 事件触发线程 定时器触发线程 异步http请求线程 GUI渲染线程 网络进程 更多可以看下这里：肝了一晚的浏览器渲染进程
+渲染帧 渲染帧是指浏览器一次完成的绘制过程，帧之间的时间间隔是DOM试图更新的最小间隔。由于主流的屏幕刷新率都在60Hz（1000ms/60Hz ~= 16.6ms），那么渲染一帧的时间必须在16.6ms内才能不掉帧。也就是说，每次渲染都要在16.6ms内完成页面才够流畅不会有卡顿感。这段时间内浏览器需要完成如下事情
+脚本执行（JavaScript）：脚本造成了需要重绘页面的改动，比如增删DOM、请求动画等 样式计算（CSS Object Modal）：级联地生成每个节点的生效样式 布局（Layout）：计算布局，执行渲染算法 重绘（Paint）：各层分别进行绘制（比如3D动画） 合成（Composite）：合成各层的渲染结果 又GUI渲染线程与JS线程是互斥的，所以JS脚本执行 和 GUI渲染 不能同时执行。即每个渲染帧中浏览器主要做的工作如下
+执行JS =&amp;gt; 空闲 =&amp;gt; GUI渲染(绘制) 如果一帧的JS执行的时间过长，就会丢掉一次帧的绘制。
+React如何减少卡顿 浏览器在每一帧的绘制过程中，会预留一些时间给JS线程。React利用这部分时间更新组件。如果在一帧中浏览器给JS线程预留的时间不够用时，React会将线程控制权交换给浏览器，使其可以有时间渲染UI，React则等待下一帧时间到来时继续被中断的工作。减少掉帧的可能性。
+这种将长任务拆分到每一帧中，像蚂蚁搬家一样一次执行一小段任务的操作被称为时间切片
+另有针对网络延迟造成的页面卡顿，React内部也有Suspense功能对其进行优化处理。
+引用 浏览器的 16ms 渲染帧
+CPU的瓶颈
+肝了一晚的浏览器渲染进程</description>
+    </item>
+    
+    <item>
+      <title>使用Hugo构建个人博客并托管至Github Pages</title>
+      <link>https://xpzero.github.io/blog/posts/%E4%BD%BF%E7%94%A8hugo%E6%9E%84%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E5%B9%B6%E6%89%98%E7%AE%A1%E8%87%B3github/</link>
+      <pubDate>Sun, 13 Aug 2023 04:26:45 +0800</pubDate>
+      
+      <guid>https://xpzero.github.io/blog/posts/%E4%BD%BF%E7%94%A8hugo%E6%9E%84%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E5%B9%B6%E6%89%98%E7%AE%A1%E8%87%B3github/</guid>
+      <description>网上冲浪看到别人的博客好简洁好好看，我也要整一套🤓。But！来来回回在网上查询，又有时候忘记要干啥整了一天才搞定🙈。这里记录下我「贪」的辛苦🥹
+明确目标 首先，我们要明确一下自己要干什么？铭记初心，方得始终，深有体会😕
+搭建博客，拥抱批评 将博客内容托管至Github Pages，进行网站白嫖。 那么如何搭建博客呢？我这次使用的是Hugo。其实中间有倒腾过Hexo、Netlify全都夭折。 其实使用静态网站构建框架生成本地博客挺快捷、简单的，时间主要浪费在了代码托管那一块儿。
+Hugo 一开始是使用的Hexo进行博客的生成，但是在搜索代码托管的过程中发现有人说，Hugo更加方便、易用。
+哇！看到这里岂能坐视不管？咱也用！当时已经是4 AM了🥺，这种状态有时候真是让人又爱又恨☹️
+说干就干。进入Hugo官网，就看见上面写着「The world&amp;rsquo;s fastest framework for buiding websites」🧐
+安装Hugo 这里跟着官网来就好了。我是今年刚买的Mac，所以这里就记录下Mac下的安装过程。
+一定要有git环境，因为Hugo的主题要从github上获取，没有git拿不到。
+# 这里brew是安装了Homebrew，用来管理各种包的安装，可以理解为软件管理 brew install hugo # 创建一个website，因为我是要搭建博客，所以这里起名叫blog # 这个命令会创建blog目录其中会有一些空的结构目录以备后用 hugo new site blog cd blog # 开始获取博客主题 git init git submodule add https://github.com/nanxiaobei/hugo-paper # 将主题配置写入hugo.toml配置文件 echo &amp;#34;theme = &amp;#39;paper&amp;#39;&amp;#34; &amp;gt;&amp;gt; hugo.toml # 启动本地服务 hugo server # 该命令可以生成静态资源，主要为资源托管做准备 # 它会生成一个public/，里面的文件就是博客的静态资源 hugo 配置Hugo 这里最重要的就是baseURL，如果配置的不对，那么资源部署到GitHub之后就会导致css等资源路径找不到而造成页面样式丢失。
+# 可以理解为是部署到Github之后，博客网站的基础路径 # 一定要带上GitHub上的仓库名哦！这个地址可以在配置公开仓库的Github Pages的设置那里拿到。有一个`Visit site`按钮，点击即可进入博客 baseURL = &amp;#39;https://xpzero.</description>
+    </item>
+    
+  </channel>
+</rss>
