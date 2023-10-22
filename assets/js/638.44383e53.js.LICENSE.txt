@@ -4,4 +4,6 @@
 
 /*! markmap-common v0.15.3 | MIT License */
 
+/*! markmap-toolbar v0.15.4 | MIT License */
+
 /*! markmap-view v0.15.4 | MIT License */
