@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkblog_2=self.webpackChunkblog_2||[]).push([[1803],{8873:e=>{e.exports=JSON.parse('{"permalink":"/blog/index/tags/neovim","page":1,"postsPerPage":10,"totalPages":1,"totalCount":2,"blogDescription":"Blog","blogTitle":"Kehan\'s Blog"}')}}]);
