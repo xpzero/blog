@@ -2,11 +2,20 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xpzero.github.io/blog/index</id>
     <title>What are you thinking about? Blog</title>
-    <updated>2023-10-30T00:00:00.000Z</updated>
+    <updated>2023-10-31T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xpzero.github.io/blog/index"/>
     <subtitle>What are you thinking about? Blog</subtitle>
     <icon>https://xpzero.github.io/blog/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Webpack推荐阅读]]></title>
+        <id>https://xpzero.github.io/blog/index/2023/10/31/Webpack推荐阅读</id>
+        <link href="https://xpzero.github.io/blog/index/2023/10/31/Webpack推荐阅读"/>
+        <updated>2023-10-31T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[从构建产物洞悉模块化原理]]></summary>
+        <content type="html"><![CDATA[<p><a href="https://juejin.cn/post/7147365025047379981/" target="_blank" rel="noopener noreferrer">从构建产物洞悉模块化原理</a></p><p><a href="https://juejin.cn/post/7152516872330543141/" target="_blank" rel="noopener noreferrer">【Webpack】异步加载(懒加载)原理</a></p><p><a href="https://juejin.cn/post/7155151377013047304/" target="_blank" rel="noopener noreferrer">前端工程化基石——AST以及AST的广泛应用</a></p><p><a href="https://juejin.cn/post/7157739406835580965" target="_blank" rel="noopener noreferrer">【万字长文｜趣味图解】彻底弄懂Webpack中的Loader机制</a></p><p><a href="https://juejin.cn/post/7160467329334607908" target="_blank" rel="noopener noreferrer">【Webpack Plugin】写了个插件跟喜欢的女生表白，结果...</a></p><p><a href="https://juejin.cn/post/7164175171358556173" target="_blank" rel="noopener noreferrer">【中级/高级前端】为什么我建议你一定要读一读 Tapable 源码？</a></p><p><a href="https://juejin.cn/post/7166031357418668040" target="_blank" rel="noopener noreferrer">线上崩了？一招教你快速定位问题！</a></p><p><a href="https://juejin.cn/post/7170852747749621791" target="_blank" rel="noopener noreferrer">二十张图片彻底讲明白Webpack设计理念，以看懂为目的</a></p><p><a href="https://juejin.cn/post/7176963906844246074#comment" target="_blank" rel="noopener noreferrer">Webpack深度进阶：两张图彻底讲明白热更新原理！</a></p>]]></content>
+        <category label="webpack" term="webpack"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[js中的事件循环机制]]></title>
         <id>https://xpzero.github.io/blog/index/2023/10/30/js中的事件循环机制</id>
