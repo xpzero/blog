@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkblog_2=self.webpackChunkblog_2||[]).push([[5782],{99137:l=>{l.exports=JSON.parse('{"label":"antd","permalink":"/blog/blog/tags/antd","allTagsPath":"/blog/blog/tags","count":1,"unlisted":false}')}}]);
