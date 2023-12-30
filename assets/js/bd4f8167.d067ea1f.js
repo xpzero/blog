@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkblog_2=self.webpackChunkblog_2||[]).push([[6116],{53602:l=>{l.exports=JSON.parse('{"label":"Hexo","permalink":"/blog/blog/tags/hexo","allTagsPath":"/blog/blog/tags","count":1,"unlisted":false}')}}]);

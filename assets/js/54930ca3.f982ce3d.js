@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkblog_2=self.webpackChunkblog_2||[]).push([[5449],{45046:l=>{l.exports=JSON.parse('{"label":"mobx","permalink":"/blog/blog/tags/mobx","allTagsPath":"/blog/blog/tags","count":1,"unlisted":false}')}}]);
