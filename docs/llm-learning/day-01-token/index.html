@@ -10,8 +10,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.7df10fef.css">
-<script src="/blog/assets/js/runtime~main.91644df1.js" defer="defer"></script>
-<script src="/blog/assets/js/main.dddcd590.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.f95d15e4.js" defer="defer"></script>
+<script src="/blog/assets/js/main.420fdd25.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -21,30 +21,76 @@
 <p>刚开始接触大模型的时候，我以为它跟人类一样，一个字一个字地读。后来发现完全不是这么回事——它用的是 Token。</p>
 <h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="一句话理解">一句话理解<a href="#一句话理解" class="hash-link" aria-label="一句话理解的直接链接" title="一句话理解的直接链接" translate="no">​</a></h2>
 <p>Token 是大模型处理文本的最小单位。中文里一个字可能拆成 1-2 个 Token，英文一个单词通常就是 1 个 Token。</p>
+<h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="token-到底是什么">Token 到底是什么？<a href="#token-到底是什么" class="hash-link" aria-label="Token 到底是什么？的直接链接" title="Token 到底是什么？的直接链接" translate="no">​</a></h2>
+<p>打个比方：</p>
+<ul>
+<li class="">人类阅读：以&quot;字&quot;和&quot;词&quot;为单位</li>
+<li class="">模型处理：以&quot;Token&quot;为单位</li>
+<li class="">就像拼图：人类看整体图案，模型看每一块拼图</li>
+</ul>
+<p>Token 可以是：</p>
+<ul>
+<li class="">一个单词（&quot;hello&quot;）</li>
+<li class="">一个字（&quot;你&quot;）</li>
+<li class="">一个词的一部分（&quot;unhappiness&quot; → &quot;un&quot; + &quot;happ&quot; + &quot;iness&quot;）</li>
+</ul>
 <h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="为什么中文更费token">为什么中文更&quot;费&quot;Token？<a href="#为什么中文更费token" class="hash-link" aria-label="为什么中文更&quot;费&quot;Token？的直接链接" title="为什么中文更&quot;费&quot;Token？的直接链接" translate="no">​</a></h2>
-<table><thead><tr><th>文本</th><th>Token 数</th><th>说明</th></tr></thead><tbody><tr><td>&quot;Hello&quot;</td><td>1</td><td>常见单词直接对应</td></tr><tr><td>&quot;unhappiness&quot;</td><td>3</td><td>拆成 &quot;un&quot; + &quot;happ&quot; + &quot;iness&quot;</td></tr><tr><td>&quot;你好&quot;</td><td>2</td><td>每个汉字 1-2 个 Token</td></tr><tr><td>&quot;机器学习&quot;</td><td>4</td><td>比英文同义词更耗 Token</td></tr></tbody></table>
-<p><strong>原因：</strong> 英文有空格分隔，中文需要模型自己切分，粒度更细。</p>
+<table><thead><tr><th>文本</th><th>Token 数</th><th>说明</th></tr></thead><tbody><tr><td>&quot;Hello&quot;</td><td>1</td><td>常见单词直接对应</td></tr><tr><td>&quot;unhappiness&quot;</td><td>3</td><td>拆成 &quot;un&quot; + &quot;happ&quot; + &quot;iness&quot;</td></tr><tr><td>&quot;你好&quot;</td><td>2</td><td>每个汉字 1-2 个 Token</td></tr><tr><td>&quot;机器学习&quot;</td><td>4</td><td>比英文同义词更耗 Token</td></tr><tr><td>&quot;今天天气很好&quot;</td><td>6-8</td><td>中文没有空格，需要更细切分</td></tr></tbody></table>
+<p><strong>原因：</strong> 英文有空格分隔，中文需要模型自己切分，粒度更细。同样的意思，中文通常需要更多 Token。</p>
 <h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="token-怎么影响使用">Token 怎么影响使用？<a href="#token-怎么影响使用" class="hash-link" aria-label="Token 怎么影响使用？的直接链接" title="Token 怎么影响使用？的直接链接" translate="no">​</a></h2>
 <h3 class="anchor anchorTargetStickyNavbar_iz6Z" id="1-api-费用">1. API 费用<a href="#1-api-费用" class="hash-link" aria-label="1. API 费用的直接链接" title="1. API 费用的直接链接" translate="no">​</a></h3>
 <p>计费公式：</p>
 <div class="language-text codeBlockContainer_Ojl3 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_tZae"><pre tabindex="0" class="prism-code language-text codeBlock_e4yB thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_kvg8"><span class="token-line" style="color:#393A34"><span class="token plain">费用 = (输入 Token + 输出 Token) × 单价</span><br></span></code></pre></div></div>
+<p><strong>实际案例：</strong></p>
+<ul>
+<li class="">发送 1000 字中文报告（约 1500 Token）</li>
+<li class="">模型回复 500 字（约 750 Token）</li>
+<li class="">GPT-4 价格：$0.03/1K Token</li>
+<li class="">费用 = 2250 / 1000 × $0.03 = $0.0675（约 0.5 元人民币）</li>
+</ul>
 <p>同样的内容，中文通常比英文贵 1-2 倍。</p>
 <h3 class="anchor anchorTargetStickyNavbar_iz6Z" id="2-上下文限制">2. 上下文限制<a href="#2-上下文限制" class="hash-link" aria-label="2. 上下文限制的直接链接" title="2. 上下文限制的直接链接" translate="no">​</a></h3>
 <p>模型有最大 Token 限制，超过就被截断：</p>
-<table><thead><tr><th>模型</th><th>上限</th><th>约等于</th></tr></thead><tbody><tr><td>GPT-3.5</td><td>4K-16K</td><td>几页文档</td></tr><tr><td>GPT-4</td><td>128K</td><td>一本书</td></tr><tr><td>Claude 3</td><td>200K</td><td>更长</td></tr></tbody></table>
+<table><thead><tr><th>模型</th><th>上限</th><th>约等于</th><th>适用场景</th></tr></thead><tbody><tr><td>GPT-3.5</td><td>4K-16K</td><td>3-12 页文档</td><td>简单对话</td></tr><tr><td>GPT-4</td><td>128K</td><td>约 100 页文档</td><td>长文档分析</td></tr><tr><td>Claude 3</td><td>200K</td><td>约 150 页</td><td>超长文档</td></tr></tbody></table>
+<p><strong>常见问题：</strong></p>
+<ul>
+<li class="">为什么长文档传不进去？→ 超过上下文窗口</li>
+<li class="">为什么聊久了模型&quot;忘记&quot;设定？→ 早期内容被挤出窗口</li>
+</ul>
 <h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="动手试试">动手试试<a href="#动手试试" class="hash-link" aria-label="动手试试的直接链接" title="动手试试的直接链接" translate="no">​</a></h2>
 <ol>
 <li class="">打开 <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener noreferrer" class="">OpenAI Tokenizer</a></li>
-<li class="">输入 &quot;Hello world&quot; 和 &quot;你好世界&quot;</li>
-<li class="">对比 Token 数差异</li>
+<li class="">输入以下内容，观察 Token 数：</li>
 </ol>
+<table><thead><tr><th>文本</th><th>Token 数</th><th>观察</th></tr></thead><tbody><tr><td>&quot;Hello world&quot;</td><td>2</td><td>英文短句</td></tr><tr><td>&quot;你好世界&quot;</td><td>4</td><td>中文短句</td></tr><tr><td>&quot;Machine learning is fascinating&quot;</td><td>5</td><td>长英文</td></tr><tr><td>&quot;机器学习非常有趣&quot;</td><td>8</td><td>长中文</td></tr></tbody></table>
+<p><strong>思考：</strong> 同样的意思，中英文 Token 数差异大吗？</p>
 <h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="省钱技巧">省钱技巧<a href="#省钱技巧" class="hash-link" aria-label="省钱技巧的直接链接" title="省钱技巧的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_iz6Z" id="1-精简提示词">1. 精简提示词<a href="#1-精简提示词" class="hash-link" aria-label="1. 精简提示词的直接链接" title="1. 精简提示词的直接链接" translate="no">​</a></h3>
+<p><strong>低效（20 tokens）：</strong></p>
+<div class="language-text codeBlockContainer_Ojl3 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_tZae"><pre tabindex="0" class="prism-code language-text codeBlock_e4yB thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_kvg8"><span class="token-line" style="color:#393A34"><span class="token plain">请帮我分析一下下面这段文字的内容和含义</span><br></span></code></pre></div></div>
+<p><strong>高效（4 tokens）：</strong></p>
+<div class="language-text codeBlockContainer_Ojl3 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_tZae"><pre tabindex="0" class="prism-code language-text codeBlock_e4yB thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_kvg8"><span class="token-line" style="color:#393A34"><span class="token plain">分析：</span><br></span></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_iz6Z" id="2-能用英文就用英文">2. 能用英文就用英文<a href="#2-能用英文就用英文" class="hash-link" aria-label="2. 能用英文就用英文的直接链接" title="2. 能用英文就用英文的直接链接" translate="no">​</a></h3>
+<p>  特别是技术文档、代码相关的内容，英文更省 Token。</p>
+<h3 class="anchor anchorTargetStickyNavbar_iz6Z" id="3-控制输出长度">3. 控制输出长度<a href="#3-控制输出长度" class="hash-link" aria-label="3. 控制输出长度的直接链接" title="3. 控制输出长度的直接链接" translate="no">​</a></h3>
+<p>设置 <code>max_tokens</code> 限制回复长度，避免意外超长回复。</p>
+<h3 class="anchor anchorTargetStickyNavbar_iz6Z" id="4-分段处理长文档">4. 分段处理长文档<a href="#4-分段处理长文档" class="hash-link" aria-label="4. 分段处理长文档的直接链接" title="4. 分段处理长文档的直接链接" translate="no">​</a></h3>
+<p>超过上下文限制的文档，分段发送，分别处理。</p>
+<h2 class="anchor anchorTargetStickyNavbar_iz6Z" id="今日总结">今日总结<a href="#今日总结" class="hash-link" aria-label="今日总结的直接链接" title="今日总结的直接链接" translate="no">​</a></h2>
+<p><strong>核心概念：</strong></p>
 <ul>
-<li class="">提示词精简：把&quot;请帮我分析一下&quot;改成&quot;分析：&quot;</li>
-<li class="">能用英文就用英文</li>
-<li class="">控制输出长度（设置 max_tokens）</li>
+<li class="">Token 是模型的&quot;文字积木&quot;</li>
+<li class="">中英文 Token 效率不同（中文更&quot;费&quot;）</li>
+<li class="">Token 数量影响 API 成本和上下文限制</li>
+</ul>
+<p><strong>实用技巧：</strong></p>
+<ul>
+<li class="">精简提示词，去掉废话</li>
+<li class="">技术内容优先用英文</li>
+<li class="">控制输出长度</li>
+<li class="">长文档分段处理</li>
 </ul>
 <hr>
-<p><a class="" href="/blog/docs/llm-learning/">返回学习路径</a></p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_OdhI"></div><div class="col lastUpdated_eRSf"><span class="theme-last-updated">最后<!-- -->于 <b><time datetime="2026-03-21T04:05:34.000Z" itemprop="dateModified">2026年3月21日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/blog/docs/llm-learning/"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">大模型与 Agent 学习路径</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/blog/docs/llm-learning/day-02-probability"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Day 2：概率与下一个 Token 预测</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bB4W thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#一句话理解" class="table-of-contents__link toc-highlight">一句话理解</a></li><li><a href="#为什么中文更费token" class="table-of-contents__link toc-highlight">为什么中文更&quot;费&quot;Token？</a></li><li><a href="#token-怎么影响使用" class="table-of-contents__link toc-highlight">Token 怎么影响使用？</a><ul><li><a href="#1-api-费用" class="table-of-contents__link toc-highlight">1. API 费用</a></li><li><a href="#2-上下文限制" class="table-of-contents__link toc-highlight">2. 上下文限制</a></li></ul></li><li><a href="#动手试试" class="table-of-contents__link toc-highlight">动手试试</a></li><li><a href="#省钱技巧" class="table-of-contents__link toc-highlight">省钱技巧</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Docusaurus<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_Y8Yr"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://neovim.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Neovim<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_Y8Yr"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://markmap.js.org/" target="_blank" rel="noopener noreferrer" class="footer__link-item">markmap<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_Y8Yr"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 Kehan's Blog. Built with Docusaurus.</div></div></div></footer></div>
+<p><a class="" href="/blog/docs/llm-learning/">返回学习路径</a></p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_OdhI"></div><div class="col lastUpdated_eRSf"><span class="theme-last-updated">最后<!-- -->于 <b><time datetime="2026-03-21T04:43:39.000Z" itemprop="dateModified">2026年3月21日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/blog/docs/llm-learning/"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">大模型与 Agent 学习路径</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/blog/docs/llm-learning/day-02-probability"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Day 2：概率与下一个 Token 预测</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bB4W thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#一句话理解" class="table-of-contents__link toc-highlight">一句话理解</a></li><li><a href="#token-到底是什么" class="table-of-contents__link toc-highlight">Token 到底是什么？</a></li><li><a href="#为什么中文更费token" class="table-of-contents__link toc-highlight">为什么中文更&quot;费&quot;Token？</a></li><li><a href="#token-怎么影响使用" class="table-of-contents__link toc-highlight">Token 怎么影响使用？</a><ul><li><a href="#1-api-费用" class="table-of-contents__link toc-highlight">1. API 费用</a></li><li><a href="#2-上下文限制" class="table-of-contents__link toc-highlight">2. 上下文限制</a></li></ul></li><li><a href="#动手试试" class="table-of-contents__link toc-highlight">动手试试</a></li><li><a href="#省钱技巧" class="table-of-contents__link toc-highlight">省钱技巧</a><ul><li><a href="#1-精简提示词" class="table-of-contents__link toc-highlight">1. 精简提示词</a></li><li><a href="#2-能用英文就用英文" class="table-of-contents__link toc-highlight">2. 能用英文就用英文</a></li><li><a href="#3-控制输出长度" class="table-of-contents__link toc-highlight">3. 控制输出长度</a></li><li><a href="#4-分段处理长文档" class="table-of-contents__link toc-highlight">4. 分段处理长文档</a></li></ul></li><li><a href="#今日总结" class="table-of-contents__link toc-highlight">今 日总结</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Docusaurus<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_Y8Yr"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://neovim.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Neovim<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_Y8Yr"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://markmap.js.org/" target="_blank" rel="noopener noreferrer" class="footer__link-item">markmap<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_Y8Yr"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 Kehan's Blog. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>
