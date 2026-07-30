@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.2">
-<title data-rh="true">LLM学习Day10：模型微调，不用从零训练 | What are you thinking about?</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning"><meta data-rh="true" property="og:locale" content="zh_CN"><meta data-rh="true" name="docusaurus_locale" content="zh-CN"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="zh-CN"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="LLM学习Day10：模型微调，不用从零训练 | What are you thinking about?"><meta data-rh="true" name="description" content="前面九天一直在学大模型的原理和优化。今天终于到微调了。"><meta data-rh="true" property="og:description" content="前面九天一直在学大模型的原理和优化。今天终于到微调了。"><meta data-rh="true" property="og:type" content="article"><meta data-rh="true" property="article:published_time" content="2026-03-31T00:00:00.000Z"><meta data-rh="true" property="article:tag" content="AI,大语言模型,微调"><link data-rh="true" rel="icon" href="/blog/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning"><link data-rh="true" rel="alternate" href="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning" hreflang="zh-CN"><link data-rh="true" rel="alternate" href="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning" hreflang="x-default"><link data-rh="true" rel="preconnect" href="https://FO8D1POL7P-dsn.algolia.net" crossorigin="anonymous"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","@id":"https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning","mainEntityOfPage":"https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning","url":"https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning","headline":"LLM学习Day10：模型微调，不用从零训练","name":"LLM学习Day10：模型微调，不用从零训练","description":"前面九天一直在学大模型的原理和优化。今天终于到微调了。","datePublished":"2026-03-31T00:00:00.000Z","author":[],"keywords":[],"isPartOf":{"@type":"Blog","@id":"https://xpzero.github.io/blog/articles","name":"技术笔记"}}</script><link rel="alternate" type="application/rss+xml" href="/blog/articles/rss.xml" title="What are you thinking about? RSS Feed">
+<title data-rh="true">模型微调：让模型学会固定做法 | What are you thinking about?</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning"><meta data-rh="true" property="og:locale" content="zh_CN"><meta data-rh="true" name="docusaurus_locale" content="zh-CN"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="zh-CN"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="模型微调：让模型学会固定做法 | What are you thinking about?"><meta data-rh="true" name="description" content="通用模型会写代码、会聊天，但未必知道团队的回复格式或产品名词。提示词能解决一次性要求；当同一种要求反复出现，且可以准备高质量示例时，微调才值得尝试。"><meta data-rh="true" property="og:description" content="通用模型会写代码、会聊天，但未必知道团队的回复格式或产品名词。提示词能解决一次性要求；当同一种要求反复出现，且可以准备高质量示例时，微调才值得尝试。"><meta data-rh="true" property="og:type" content="article"><meta data-rh="true" property="article:published_time" content="2026-03-31T00:00:00.000Z"><meta data-rh="true" property="article:tag" content="AI,大语言模型,微调"><link data-rh="true" rel="icon" href="/blog/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning"><link data-rh="true" rel="alternate" href="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning" hreflang="zh-CN"><link data-rh="true" rel="alternate" href="https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning" hreflang="x-default"><link data-rh="true" rel="preconnect" href="https://FO8D1POL7P-dsn.algolia.net" crossorigin="anonymous"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","@id":"https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning","mainEntityOfPage":"https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning","url":"https://xpzero.github.io/blog/articles/2026/03/31/2026-03/llm-learning-day10-fine-tuning","headline":"模型微调：让模型学会固定做法","name":"模型微调：让模型学会固定做法","description":"通用模型会写代码、会聊天，但未必知道团队的回复格式或产品名词。提示词能解决一次性要求；当同一种要求反复出现，且可以准备高质量示例时，微调才值得尝试。","datePublished":"2026-03-31T00:00:00.000Z","author":[],"keywords":[],"isPartOf":{"@type":"Blog","@id":"https://xpzero.github.io/blog/articles","name":"技术笔记"}}</script><link rel="alternate" type="application/rss+xml" href="/blog/articles/rss.xml" title="What are you thinking about? RSS Feed">
 <link rel="alternate" type="application/atom+xml" href="/blog/articles/atom.xml" title="What are you thinking about? Atom Feed">
 
 
@@ -16,175 +16,44 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.3749df1c.css">
-<script src="/blog/assets/js/runtime~main.400b0d28.js" defer="defer"></script>
-<script src="/blog/assets/js/main.92026580.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.39a3cc89.js" defer="defer"></script>
+<script src="/blog/assets/js/main.a357c381.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
 <symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||"light"),document.documentElement.setAttribute("data-theme-choice",t||"light")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="跳到主要内容"><a class="skipToContent_DEmJ" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/blog/"><b class="navbar__title text--truncate">柯寒的备忘录</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/blog/articles">文章</a><a class="navbar__item navbar__link" href="/blog/projects">作品</a><a class="navbar__item navbar__link" href="/blog/categories">分类</a><a class="navbar__item navbar__link" href="/blog/docs/llm-learning/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/xpzero" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_Yfn2 colorModeToggle_jlDq"><button class="clean-btn toggleButton_qrK3 toggleButtonDisabled_tc5g" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e lightToggleIcon_CQc_"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e darkToggleIcon_QYDY"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e systemToggleIcon_E8NU"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_uEaa"><button type="button" class="DocSearch DocSearch-Button" aria-label="搜索 (Meta+k)" aria-keyshortcuts="Meta+k"><span class="DocSearch-Button-Container"><svg width="20" height="20" class="DocSearch-Search-Icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" stroke="currentColor" fill="none" stroke-width="1.4"></circle><path d="m21 21-4.3-4.3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="DocSearch-Button-Placeholder">搜索</span></span><span class="DocSearch-Button-Keys"></span></button></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_OqxJ"><div class="container margin-vert--lg"><div class="row"><main class="col col--9 col--offset-1"><article class=""><header><h1 class="title_H7ad">LLM学习Day10：模型微调，不用从零训练</h1><div class="container_ewGG margin-vert--md"><time datetime="2026-03-31T00:00:00.000Z">2026年3月31日</time> · <!-- -->阅读需 5 分钟</div></header><div id="__blog-post-container" class="markdown"><p>前面九天一直在学大模型的原理和优化。今天终于到微调了。</p>
-<p>说实话，我之前一直以为训练大模型就是从头开始，用海量数据灌进去，烧几百万美元算力。后来才知道，原来有一种方法叫<strong>微调</strong>——在预训练好的模型基础上，针对特定任务做调整，成本低得多。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="为什么要微调">为什么要微调<a href="#为什么要微调" class="hash-link" aria-label="为什么要微调的直接链接" title="为什么要微调的直接链接" translate="no">​</a></h2>
-<p>预训练模型（比如GPT、Llama）已经学了通用知识，但它不懂你的业务场景。</p>
-<p>举个例子：</p>
-<ul>
-<li class="">基础模型能写代码，但不懂你们公司的代码规范</li>
-<li class="">基础模型能对话，但不懂你们行业的专业术语</li>
-<li class="">基础模型能翻译，但不懂你们产品的特定名词</li>
-</ul>
-<p>微调就是让它学会你的特定领域。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="三种微调方法">三种微调方法<a href="#三种微调方法" class="hash-link" aria-label="三种微调方法的直接链接" title="三种微调方法的直接链接" translate="no">​</a></h2>
-<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="1-full-fine-tuning全量微调">1. Full Fine-tuning（全量微调）<a href="#1-full-fine-tuning全量微调" class="hash-link" aria-label="1. Full Fine-tuning（全量微调）的直接链接" title="1. Full Fine-tuning（全量微调）的直接链接" translate="no">​</a></h3>
-<p>最直观的方法：调整模型的所有参数。</p>
-<p><strong>优点</strong>：效果通常最好<br>
-<strong>缺点</strong>：</p>
-<ul>
-<li class="">需要大量显存（7B模型需要几十GB）</li>
-<li class="">训练时间长</li>
-<li class="">容易过拟合</li>
-<li class="">每个任务都要存一份完整的模型</li>
-</ul>
-<p>对于个人学习和小团队来说，成本太高了。</p>
-<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="2-loralow-rank-adaptation">2. LoRA（Low-Rank Adaptation）<a href="#2-loralow-rank-adaptation" class="hash-link" aria-label="2. LoRA（Low-Rank Adaptation）的直接链接" title="2. LoRA（Low-Rank Adaptation）的直接链接" translate="no">​</a></h3>
-<p>2021年微软提出的方法，现在最主流的微调方案。</p>
-<p>核心思路很简单：模型参数的变化其实是低秩的，不需要改所有参数，只需要在关键位置加几个小矩阵。</p>
-<p>具体做法：</p>
-<ul>
-<li class="">冻结原模型参数（不训练）</li>
-<li class="">在Transformer的Attention和FFN层旁边，插入低秩矩阵（A和B）</li>
-<li class="">只训练这两个小矩阵</li>
-</ul>
-<p>效果：</p>
-<ul>
-<li class="">7B模型，LoRA只需要训练原来0.1%的参数</li>
-<li class="">显存占用从几十GB降到几GB</li>
-<li class="">可以在消费级显卡上训练</li>
-</ul>
-<p>代码示意（简化版）：</p>
-<div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic"># 原模型的权重 W</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># LoRA添加两个矩阵 A 和 B，秩为 r</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 前向传播时：W&#x27; = W + B @ A</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 训练时只更新 A 和 B，W 保持不变</span><br></div></code></pre></div></div>
-<p>我用LoRA微调过一个代码补全模型，在一张RTX 3090上，2小时就训完了，效果比直接用基础模型好很多。</p>
-<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="3-qloraquantized-lora">3. QLoRA（Quantized LoRA）<a href="#3-qloraquantized-lora" class="hash-link" aria-label="3. QLoRA（Quantized LoRA）的直接链接" title="3. QLoRA（Quantized LoRA）的直接链接" translate="no">​</a></h3>
-<p>LoRA的升级版，更进一步降低显存占用。</p>
-<p>核心思路：把模型权重量化到4bit，同时保持LoRA的训练效率。</p>
-<p>4bit量化是什么概念？</p>
-<ul>
-<li class="">原来一个参数用16bit或32bit存</li>
-<li class="">现在只用4bit，显存占用降到原来的1/4甚至1/8</li>
-<li class="">7B模型可以在6GB显存上微调</li>
-</ul>
-<p>技术细节：</p>
-<ul>
-<li class="">使用NF4（Normal Float 4）量化，比普通的4bit精度更高</li>
-<li class="">双量化：对量化常数再量化一次</li>
-<li class="">分页优化器：把优化器状态分页到CPU内存</li>
-</ul>
-<p>这意味着笔记本显卡也能微调大模型了。</p>
-<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="4-prefix-tuning--prompt-tuning">4. Prefix Tuning / Prompt Tuning<a href="#4-prefix-tuning--prompt-tuning" class="hash-link" aria-label="4. Prefix Tuning / Prompt Tuning的直接链接" title="4. Prefix Tuning / Prompt Tuning的直接链接" translate="no">​</a></h3>
-<p>另一种思路：不动模型参数，只优化输入。</p>
-<p>Prefix Tuning：</p>
-<ul>
-<li class="">在输入前面加一段可训练的&quot;前缀向量&quot;</li>
-<li class="">冻结整个模型，只训练这个 前缀</li>
-<li class="">相当于给模型一个&quot;软提示&quot;</li>
-</ul>
-<p>Prompt Tuning：</p>
-<ul>
-<li class="">更简单的版本，只在输入层加可训练向量</li>
-<li class="">效果比Prefix Tuning稍差，但更简单</li>
-</ul>
-<p>这种方法适合多任务场景——每个任务学一个前缀，切换任务只需要换前缀，模型本体不用动。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="怎么选">怎么选<a href="#怎么选" class="hash-link" aria-label="怎么选的直接链接" title="怎么选的直接链接" translate="no">​</a></h2>
-<table><thead><tr><th>方法</th><th>显存需求</th><th>训练速度</th><th>效果</th><th>适用场景</th></tr></thead><tbody><tr><td>Full Fine-tuning</td><td>很高</td><td>慢</td><td>最好</td><td>数据充足、算力充沛</td></tr><tr><td>LoRA</td><td>中等</td><td>快</td><td>很好</td><td>大多数场景首选</td></tr><tr><td>QLoRA</td><td>很低</td><td>较快</td><td>好</td><td>消费级显卡、笔记本</td></tr><tr><td>Prefix Tuning</td><td>低</td><td>快</td><td>一般</td><td>多任务、快速实验</td></tr></tbody></table>
-<p>我的建议：</p>
-<ul>
-<li class="">个人学习/小项目 → QLoRA</li>
-<li class="">生产环境/追求效果 → LoRA</li>
-<li class="">快速验证想法 → Prefix Tuning</li>
-<li class="">除非有充足资源，否则别碰Full Fine-tuning</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="微调流程">微调流程<a href="#微调流程" class="hash-link" aria-label="微调流程的直接链接" title="微调流程的直接链接" translate="no">​</a></h2>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||"light"),document.documentElement.setAttribute("data-theme-choice",t||"light")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="跳到主要内容"><a class="skipToContent_DEmJ" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/blog/"><b class="navbar__title text--truncate">柯寒的备忘录</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/blog/articles">文章</a><a class="navbar__item navbar__link" href="/blog/projects">作品</a><a class="navbar__item navbar__link" href="/blog/categories">分类</a><a class="navbar__item navbar__link" href="/blog/docs/llm-learning/overview">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/xpzero" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_Yfn2 colorModeToggle_jlDq"><button class="clean-btn toggleButton_qrK3 toggleButtonDisabled_tc5g" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e lightToggleIcon_CQc_"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e darkToggleIcon_QYDY"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e systemToggleIcon_E8NU"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_uEaa"><button type="button" class="DocSearch DocSearch-Button" aria-label="搜索 (Meta+k)" aria-keyshortcuts="Meta+k"><span class="DocSearch-Button-Container"><svg width="20" height="20" class="DocSearch-Search-Icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" stroke="currentColor" fill="none" stroke-width="1.4"></circle><path d="m21 21-4.3-4.3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="DocSearch-Button-Placeholder">搜索</span></span><span class="DocSearch-Button-Keys"></span></button></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_OqxJ"><div class="container margin-vert--lg"><div class="row"><main class="col col--9 col--offset-1"><article class=""><header><h1 class="title_H7ad">模型微调：让模型学会固定做法</h1><div class="container_ewGG margin-vert--md"><time datetime="2026-03-31T00:00:00.000Z">2026年3月31日</time> · <!-- -->阅读需 3 分钟</div></header><div id="__blog-post-container" class="markdown"><p>通用模型会写代码、会聊天，但未必知道团队的回复格式或产品名词。提示词能解决一次性要求；当同一种要求反复出现，且可以准备高质量示例时，微调才值得尝试。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="微调到底改了什么">微调到底改了什么<a href="#微调到底改了什么" class="hash-link" aria-label="微调到底改了什么的直接链接" title="微调到底改了什么的直接链接" translate="no">​</a></h2>
+<p>微调是在已有模型基础上继续训练，不是从零造一个模型。训练样本告诉它：“看到这种输入时，应该按这种方式回答”。它更像在练习表达习惯，不是一个可靠的资料库；需要引用最新文档时，RAG 往往更合适。</p>
+<p>例如，希望模型把 bug 报告整理成固定模板：</p>
+<div class="language-json codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-json codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token punctuation" style="color:#393A34">{</span><span class="token property" style="color:#36acaa">&quot;messages&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token punctuation" style="color:#393A34">[</span><span class="token punctuation" style="color:#393A34">{</span><span class="token property" style="color:#36acaa">&quot;role&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token string" style="color:#e3116c">&quot;user&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token property" style="color:#36acaa">&quot;content&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token string" style="color:#e3116c">&quot;登录后白屏，Safari 17 可复现&quot;</span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token punctuation" style="color:#393A34">{</span><span class="token property" style="color:#36acaa">&quot;role&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token string" style="color:#e3116c">&quot;assistant&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token property" style="color:#36acaa">&quot;content&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token string" style="color:#e3116c">&quot;现象：登录后白屏\n环境：Safari 17\n建议：检查控制台错误和登录回调&quot;</span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">}</span><br></div></code></pre></div></div>
+<p>先写 20 条这样的样本，再让基础模型用同样提示词回答。若基础模型已经稳定做到，就不必训练。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="常见选择">常见选择<a href="#常见选择" class="hash-link" aria-label="常见选择的直接链接" title="常见选择的直接链接" translate="no">​</a></h2>
+<p>全量微调会更新全部参数，成本高，也要保存完整模型副本。个人实验通常从 LoRA 开始：冻结原模型，只训练附加的小参数；QLoRA 再把基础模型以低精度存放，以换取更低显存占用。</p>
+<p>选择顺序可以很简单：先提示词，再 LoRA；显存不够再考虑 QLoRA；只有数据、预算和评估都充分时才考虑全量微调。所谓“低显存可训练”仍取决于模型大小、上下文长度、批量和软件版本，不能只看显卡容量。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="最小实验的检查表">最小实验的检查表<a href="#最小实验的检查表" class="hash-link" aria-label="最小实验的检查表的直接链接" title="最小实验的检查表的直接链接" translate="no">​</a></h2>
 <ol>
-<li class="">
-<p><strong>准备数据</strong></p>
-<ul>
-<li class="">收集领域相关的输入-输出对</li>
-<li class="">格式通常是JSON或JSONL</li>
-<li class="">数据质量比数量重要</li>
-</ul>
-</li>
-<li class="">
-<p><strong>选择基础模型</strong></p>
-<ul>
-<li class="">通用场景：Llama、Mistral、Qwen</li>
-<li class="">代码场景：CodeLlama、StarCoder</li>
-<li class="">中文场景：ChatGLM、Baichuan</li>
-</ul>
-</li>
-<li class="">
-<p><strong>配置训练参数</strong></p>
-<ul>
-<li class="">LoRA rank（通常8-64）</li>
-<li class="">学习率（通常1e-4到1e-5）</li>
-<li class="">训练轮数（通常3-10个epoch）</li>
-</ul>
-</li>
-<li class="">
-<p><strong>训练</strong></p>
-<ul>
-<li class="">使用Hugging Face PEFT库</li>
-<li class="">或者用LLaMA-Factory这种集成工具</li>
-</ul>
-</li>
-<li class="">
-<p><strong>评估和迭代</strong></p>
-<ul>
-<li class="">在验证集上测试效果</li>
-<li class="">调整参数再训</li>
-</ul>
-</li>
+<li class="">明确一个可判断的目标，例如“输出必须有现象、环境、建议三行”。</li>
+<li class="">准备少量干净、无敏感信息的输入输出对，并留出从不训练的测试样本。</li>
+<li class="">训练一个小型 LoRA 适配器，保存训练配置和基础模型版本。</li>
+<li class="">用同一组测试问题对比训练前后，再人工检查错误和编造内容。</li>
 </ol>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="实际体验">实际体验<a href="#实际体验" class="hash-link" aria-label="实际体验的直接链接" title="实际体验的直接链接" translate="no">​</a></h2>
-<p>我用QLoRA微调过一个7B模型做技术文档问答。</p>
-<p><strong>数据</strong>：500条公司内部文档的问答对<br>
-<strong>硬件</strong>：RTX 3090 24GB<br>
-<strong>时间</strong>：1.5小时<br>
-<strong>效果</strong>：回答准确率从基础模型的40%提升到85%</p>
-<p>关键是这500条数据里有很多公司内部术语和缩写，基础模型根本不懂，微调后它能准确理解了。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="坑">坑<a href="#坑" class="hash-link" aria-label="坑的直接链接" title="坑的直接链接" translate="no">​</a></h2>
-<ol>
-<li class="">
-<p><strong>数据质量最重要</strong></p>
+<p>下面的小脚本可先检查每条对话是否有用户和助手消息：</p>
+<div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> json</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">for</span><span class="token plain"> line_no</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> line </span><span class="token keyword" style="color:#00009f">in</span><span class="token plain"> </span><span class="token builtin">enumerate</span><span class="token punctuation" style="color:#393A34">(</span><span class="token builtin">open</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;train.jsonl&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> encoding</span><span class="token operator" style="color:#393A34">=</span><span class="token string" style="color:#e3116c">&quot;utf-8&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> </span><span class="token number" style="color:#36acaa">1</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    roles </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">message</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">&quot;role&quot;</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">for</span><span class="token plain"> message </span><span class="token keyword" style="color:#00009f">in</span><span class="token plain"> json</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">loads</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">line</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">&quot;messages&quot;</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;user&quot;</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">not</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">in</span><span class="token plain"> roles </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;assistant&quot;</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">not</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">in</span><span class="token plain"> roles</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token keyword" style="color:#00009f">print</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string-interpolation string" style="color:#e3116c">f&quot;第 </span><span class="token string-interpolation interpolation punctuation" style="color:#393A34">{</span><span class="token string-interpolation interpolation">line_no</span><span class="token string-interpolation interpolation punctuation" style="color:#393A34">}</span><span class="token string-interpolation string" style="color:#e3116c"> 行缺少 user 或 assistant&quot;</span><span class="token punctuation" style="color:#393A34">)</span><br></div></code></pre></div></div>
+<p>没有输出表示这个最基本的格式检查通过，不代表答案质量通过。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="容易踩的坑">容易踩的坑<a href="#容易踩的坑" class="hash-link" aria-label="容易踩的坑的直接链接" title="容易踩的坑的直接链接" translate="no">​</a></h2>
 <ul>
-<li class="">脏数据会让模型学坏</li>
-<li class="">宁可少而精，不要多而杂</li>
+<li class="">样本答案互相矛盾时，模型不会替你选出正确版本。</li>
+<li class="">训练太久会记住样本措辞，遇到新问题反而变差，要看验证  集并及时停止。</li>
+<li class="">微调后仍会幻觉，也可能损失原有的通用能力，因此始终与基础模型对比。</li>
+<li class="">业务数据可能含个人信息、密钥或版权内容，提交到第三方训练服务前必须确认合规。</li>
 </ul>
-</li>
-<li class="">
-<p><strong>不要训太久</strong></p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="#参考" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
 <ul>
-<li class="">小数据训太久会过拟合</li>
-<li class="">观察验证集loss，早停</li>
-</ul>
-</li>
-<li class="">
-<p><strong>学习率别太大</strong></p>
-<ul>
-<li class="">LoRA的学习率通常比全量微调小一个量级</li>
-<li class="">太大容易训崩</li>
-</ul>
-</li>
-<li class="">
-<p><strong>rank不是越大越好</strong></p>
-<ul>
-<li class="">小数据用低rank（8-16）</li>
-<li class="">大数据才需要高rank（32-64）</li>
-</ul>
-</li>
-</ol>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="下一步">下一步<a href="#下一步" class="hash-link" aria-label="下一步的直接链接" title="下一步的直接链接" translate="no">​</a></h2>
-<p>明天学指令微调（Instruction Tuning），这是让模型学会&quot;听懂指令&quot;的关键技术，也是ChatGPT类产品的核心。</p>
-<hr>
-<p><em>记录于2026-03-31</em></p></div><footer class="docusaurus-mt-lg"><div class="row margin-top--sm theme-blog-footer-edit-meta-row"><div class="col"><b>标签：</b><ul class="tags_p3iO padding--none margin-left--sm"><li class="tag_gWfr"><a rel="tag" title="大语言模型、推理与 AI 应用学习。" class="tag_mlKh tagRegular_XPTi" href="/blog/articles/tags/ai">AI</a></li><li class="tag_gWfr"><a rel="tag" title="大模型原理、训练、推理与应用。" class="tag_mlKh tagRegular_XPTi" href="/blog/articles/tags/llm">大语言模型</a></li><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/articles/tags/fine-tuning">微调</a></li></ul></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="博文分页导航"><a class="pagination-nav__link pagination-nav__link--prev" href="/blog/articles/llm-learning-day-11"><div class="pagination-nav__sublabel">较新一篇</div><div class="pagination-nav__label">Day 11 - 微调实战：数据准备与效果评估</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/blog/articles/2026/03/24/2026-03/transformer-architecture"><div class="pagination-nav__sublabel">较旧一篇</div><div class="pagination-nav__label">Day 6：Transformer 架构——Attention Is All You Need</div></a></nav></main><div class="col col--2"><div class="tableOfContents_FduZ thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#为什么要微调" class="table-of-contents__link toc-highlight">为什么要微调</a></li><li><a href="#三种微调方法" class="table-of-contents__link toc-highlight">三种微调方法</a><ul><li><a href="#1-full-fine-tuning全量微调" class="table-of-contents__link toc-highlight">1. Full Fine-tuning（全量微调）</a></li><li><a href="#2-loralow-rank-adaptation" class="table-of-contents__link toc-highlight">2. LoRA（Low-Rank Adaptation）</a></li><li><a href="#3-qloraquantized-lora" class="table-of-contents__link toc-highlight">3. QLoRA（Quantized LoRA）</a></li><li><a href="#4-prefix-tuning--prompt-tuning" class="table-of-contents__link toc-highlight">4. Prefix Tuning / Prompt Tuning</a></li></ul></li><li><a href="#怎么选" class="table-of-contents__link toc-highlight">怎么选</a></li><li><a href="#微调流程" class="table-of-contents__link toc-highlight">微调流程</a></li><li><a href="#实际体验" class="table-of-contents__link toc-highlight">实际体验</a></li><li><a href="#坑" class="table-of-contents__link toc-highlight">坑</a></li><li><a href="#下一步" class="table-of-contents__link toc-highlight">下一步</a></li></ul></div></div></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Explore</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/blog/articles/archive">文章归档</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/categories">内容分类</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/projects">作品与实验</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/docs/llm-learning">学习路径</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Docusaurus<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://neovim.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Neovim<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://markmap.js.org/" target="_blank" rel="noopener noreferrer" class="footer__link-item">markmap<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 Kehan's Blog. Built with Docusaurus.</div></div></div></footer></div>
+<li class=""><a href="https://huggingface.co/docs/peft/" target="_blank" rel="noopener noreferrer" class="">Hugging Face PEFT 文档</a></li>
+<li class=""><a href="https://arxiv.org/abs/2106.09685" target="_blank" rel="noopener noreferrer" class="">LoRA 论文</a></li>
+<li class=""><a href="https://arxiv.org/abs/2305.14314" target="_blank" rel="noopener noreferrer" class="">QLoRA 论文</a></li>
+</ul></div><footer class="docusaurus-mt-lg"><div class="row margin-top--sm theme-blog-footer-edit-meta-row"><div class="col"><b>标签：</b><ul class="tags_p3iO padding--none margin-left--sm"><li class="tag_gWfr"><a rel="tag" title="大语言模型、推理与 AI 应用学习。" class="tag_mlKh tagRegular_XPTi" href="/blog/articles/tags/ai">AI</a></li><li class="tag_gWfr"><a rel="tag" title="大模型原理、训练、推理与应用。" class="tag_mlKh tagRegular_XPTi" href="/blog/articles/tags/llm">大语言模型</a></li><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/articles/tags/fine-tuning">微调</a></li></ul></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="博文分页导航"><a class="pagination-nav__link pagination-nav__link--prev" href="/blog/articles/llm-learning-day-11"><div class="pagination-nav__sublabel">较新一篇</div><div class="pagination-nav__label">微调实战：先把数据和评估做好</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/blog/articles/2026/03/24/2026-03/transformer-architecture"><div class="pagination-nav__sublabel">较旧一篇</div><div class="pagination-nav__label">Transformer 架构：文本为什么能互相参考</div></a></nav></main><div class="col col--2"><div class="tableOfContents_FduZ thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#微调到底改了什么" class="table-of-contents__link toc-highlight">微调到底改了什么</a></li><li><a href="#常见选择" class="table-of-contents__link toc-highlight">常见选择</a></li><li><a href="#最小实验的检查表" class="table-of-contents__link toc-highlight">最小实验的检查表</a></li><li><a href="#容易踩的坑" class="table-of-contents__link toc-highlight">容易踩的坑</a></li><li><a href="#参考" class="table-of-contents__link toc-highlight">参考</a></li></ul></div></div></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Explore</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/blog/articles/archive">文章归档</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/categories">内容分类</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/projects">作品与实验</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/docs/llm-learning/overview">AI 学习笔记</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Docusaurus<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://neovim.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Neovim<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://markmap.js.org/" target="_blank" rel="noopener noreferrer" class="footer__link-item">markmap<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 Kehan's Blog. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>
