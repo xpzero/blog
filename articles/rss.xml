@@ -70,7 +70,7 @@
             <title><![CDATA[Transformer 入门：生成文字前模型在看什么]]></title>
             <link>https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-06-transformer</link>
             <guid>https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-06-transformer</guid>
-            <pubDate>Thu, 30 Jul 2026 17:00:02 GMT</pubDate>
+            <pubDate>Thu, 30 Jul 2026 17:03:54 GMT</pubDate>
             <description><![CDATA[聊天模型输出下一个字之前，不是在资料库里直接查答案。它会先把已有文字拆成词元，并让每个位置参考上下文，再选择最可能的下一个词元。Transformer 是完成这件事的主流结构。]]></description>
             <content:encoded><![CDATA[<p>聊天模型输出下一个字之前，不是在资料库里直接查答案。它会先把已有文字拆成词元，并让每个位置参考上下文，再选择最可能的下一个词元。Transformer 是完成这件事的主流结构。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="从一句话开始理解">从一句话开始理解<a href="https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-06-transformer#%E4%BB%8E%E4%B8%80%E5%8F%A5%E8%AF%9D%E5%BC%80%E5%A7%8B%E7%90%86%E8%A7%A3" class="hash-link" aria-label="从一句话开始理解的直接链接" title="从一句话开始理解的直接链接" translate="no">​</a></h2>
@@ -106,7 +106,7 @@
             <title><![CDATA[注意力机制：模型怎样挑选上下文]]></title>
             <link>https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-08-attention-advanced</link>
             <guid>https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-08-attention-advanced</guid>
-            <pubDate>Thu, 30 Jul 2026 17:00:02 GMT</pubDate>
+            <pubDate>Thu, 30 Jul 2026 17:03:54 GMT</pubDate>
             <description><![CDATA[长提示词里放了很多资料，模型却可能抓错重点。注意力机制解释了它有能力参考哪些位置，但不保证它每次都会选对。理解这个边界，对写提示词和排查回答很有帮助。]]></description>
             <content:encoded><![CDATA[<p>长提示词里放了很多资料，模型却可能抓错重点。注意力机制解释了它有能力参考哪些位置，但不保证它每次都会选对。理解这个边界，对写提示词和排查回答很有帮助。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="注意力像一次带权检索">注意力像一次带权检索<a href="https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-08-attention-advanced#%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%83%8F%E4%B8%80%E6%AC%A1%E5%B8%A6%E6%9D%83%E6%A3%80%E7%B4%A2" class="hash-link" aria-label="注意力像一次带权检索的直接链接" title="注意力像一次带权检索的直接链接" translate="no">​</a></h2>
@@ -142,7 +142,7 @@
             <title><![CDATA[大模型推理优化：先找到慢和贵的原因]]></title>
             <link>https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-09-inference-optimization</link>
             <guid>https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-09-inference-optimization</guid>
-            <pubDate>Thu, 30 Jul 2026 17:00:02 GMT</pubDate>
+            <pubDate>Thu, 30 Jul 2026 17:03:54 GMT</pubDate>
             <description><![CDATA[本地模型能跑起来，不代表能用。常见现象是首个字出来很慢、对话越长越卡，或者并发一高就显存不足。推理优化不是追求一个万能参数，而是先分清时间和内存花在哪里。]]></description>
             <content:encoded><![CDATA[<p>本地模型能跑起来，不代表能用。常见现象是首个字出来很慢、对话越长越卡，或者并发一高就显存不足。推理优化不是追求一个万能参数，而是先分清时间和内存花在哪里。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="先量两个指标">先量两个指标<a href="https://xpzero.github.io/blog/articles/2026-03/llm-learning-day-09-inference-optimization#%E5%85%88%E9%87%8F%E4%B8%A4%E4%B8%AA%E6%8C%87%E6%A0%87" class="hash-link" aria-label="先量两个指标的直接链接" title="先量两个指标的直接链接" translate="no">​</a></h2>
