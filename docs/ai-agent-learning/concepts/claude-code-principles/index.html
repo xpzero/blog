@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="zh-CN" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-ai-agent-learning/concepts/claude-code-principles" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.10.2">
+<title data-rh="true">Claude Code 工作原理：从语言模型到可执行 Agent | What are you thinking about?</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://xpzero.github.io/blog/docs/ai-agent-learning/concepts/claude-code-principles"><meta data-rh="true" property="og:locale" content="zh_CN"><meta data-rh="true" name="docusaurus_locale" content="zh-CN"><meta data-rh="true" name="docsearch:language" content="zh-CN"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Claude Code 工作原理：从语言模型到可执行 Agent | What are you thinking about?"><meta data-rh="true" name="description" content="基于 Claude Code 2.1.88 源码，梳理模型、宿主程序、上下文、工具、权限、MCP、Thinking、流式执行与错误恢复如何组成一个可执行 Agent。"><meta data-rh="true" property="og:description" content="基于 Claude Code 2.1.88 源码，梳理模型、宿主程序、上下文、工具、权限、MCP、Thinking、流式执行与错误恢复如何组成一个可执行 Agent。"><link data-rh="true" rel="icon" href="/blog/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://xpzero.github.io/blog/docs/ai-agent-learning/concepts/claude-code-principles"><link data-rh="true" rel="alternate" href="https://xpzero.github.io/blog/docs/ai-agent-learning/concepts/claude-code-principles" hreflang="zh-CN"><link data-rh="true" rel="alternate" href="https://xpzero.github.io/blog/docs/ai-agent-learning/concepts/claude-code-principles" hreflang="x-default"><link data-rh="true" rel="preconnect" href="https://FO8D1POL7P-dsn.algolia.net" crossorigin="anonymous"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Agent学习","item":"https://xpzero.github.io/blog/docs/ai-agent-learning/"},{"@type":"ListItem","position":2,"name":"Claude Code 工作原理：从语言模型到可执行 Agent","item":"https://xpzero.github.io/blog/docs/ai-agent-learning/concepts/claude-code-principles"}]}</script><link rel="search" type="application/opensearchdescription+xml" title="What are you thinking about?" href="/blog/opensearch.xml">
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.03610c8f.css">
+<script src="/blog/assets/js/runtime~main.4d5239f3.js" defer="defer"></script>
+<script src="/blog/assets/js/main.798c7afe.js" defer="defer"></script>
+</head>
+<body>
+<svg style="display: none;"><defs>
+<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||"light"),document.documentElement.setAttribute("data-theme-choice",t||"light")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="跳到主要内容"><a class="skipToContent_DEmJ" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/blog/"><b class="navbar__title text--truncate">柯寒的备忘录</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/blog/docs/llm-learning/overview">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/xpzero" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_Yfn2 colorModeToggle_jlDq"><button class="clean-btn toggleButton_qrK3 toggleButtonDisabled_tc5g" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e lightToggleIcon_CQc_"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e darkToggleIcon_QYDY"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_X44e systemToggleIcon_E8NU"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_uEaa"><button type="button" class="DocSearch DocSearch-Button" aria-label="搜索 (Meta+k)" aria-keyshortcuts="Meta+k"><span class="DocSearch-Button-Container"><svg width="20" height="20" class="DocSearch-Search-Icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" stroke="currentColor" fill="none" stroke-width="1.4"></circle><path d="m21 21-4.3-4.3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="DocSearch-Button-Placeholder">搜索</span></span><span class="DocSearch-Button-Keys"></span></button></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_OqxJ"><div class="docsWrapper_RDFY"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_wRH3" type="button"></button><div class="docRoot_GreH"><aside class="theme-doc-sidebar-container docSidebarContainer_KLj2"><div class="sidebarViewport_QXFv"><div class="sidebar_SMX5"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_VBtl"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist" href="/blog/docs/llm-learning/overview"><span class="categoryLinkLabel_OEO9">大模型学习</span></a><button aria-label="展开侧边栏分类 &#x27;大模型学习&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--active" href="/blog/docs/ai-agent-learning/"><span class="categoryLinkLabel_OEO9">Agent学习</span></a><button aria-label="折叠侧边栏分类 &#x27;Agent学习&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role="button" aria-expanded="true" tabindex="0" href="/blog/docs/ai-agent-learning/concepts/claude-code-principles"><span class="categoryLinkLabel_OEO9">概念</span></a></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/blog/docs/ai-agent-learning/concepts/claude-code-principles"><span class="linkLabel_W5Q1">Claude Code 工作原理：从语言模型到可执行 Agent</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="true" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-01-single-call"><span class="categoryLinkLabel_OEO9">基础</span></a></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-01-single-call"><span class="linkLabel_W5Q1">从零手写 Agent（一）：第一次用代码调用大模型</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-02-tool-use"><span class="linkLabel_W5Q1">从零手写 Agent（二）：让模型用上它接触不到的数据</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-03-multi-turn"><span class="linkLabel_W5Q1">从零手写 Agent（三）：为什么它记不住上一句话</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-04-streaming"><span class="linkLabel_W5Q1">从零手写 Agent（四）：流式输出，以及被切碎的工具调用</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-05-file-tools"><span class="linkLabel_W5Q1">从零手写 Agent（五）：让 Agent 读写本地文件</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-06-web-search"><span class="linkLabel_W5Q1">从零手写 Agent（六）：接上联网搜索，同时接上风险</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-07-multi-session"><span class="linkLabel_W5Q1">从零手写 Agent（七）：让多个话题互不干扰</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-08-web-ui"><span class="linkLabel_W5Q1">从零手写 Agent（八）：把它接上网页</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-09-responses-api"><span class="linkLabel_W5Q1">从零手写 Agent（九）：从 Chat Completions 切到 Responses API</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/blog/docs/ai-agent-learning/build-agent-10-tool-visibility"><span class="linkLabel_W5Q1">从零手写 Agent（十）：工具明明执行了，为什么页面上看不见？</span></a></li></ul></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/blog/docs/engineering-practice/resume-workspace-ai"><span class="categoryLinkLabel_OEO9">项目实践</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/blog/docs/JavaScript/js-prototype/"><span class="categoryLinkLabel_OEO9">前端开发</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/blog/docs/Python/why-fastapi"><span class="categoryLinkLabel_OEO9">后端开发</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/blog/docs/browser-internals/browser-principle-security/"><span class="categoryLinkLabel_OEO9">浏览器与可视化</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/blog/docs/Webpack/recommend-read-webpack"><span class="categoryLinkLabel_OEO9">工程与工具</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_pmt5 menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/blog/docs/Math/Pi-should-180"><span class="categoryLinkLabel_OEO9">其他笔记</span></a></div></li></ul></nav></div></div></aside><main class="docMainContainer_L0Cl"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_n9jV"><div class="docItemContainer_ileB"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_pDDV" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/blog/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_lMsd"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/blog/docs/ai-agent-learning/"><span>Agent学习</span></a></li><li class="breadcrumbs__item"><span class="breadcrumbs__link">概念</span></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Claude Code 工作原理：从语言模型到可执行 Agent</span></li></ul></nav><div class="tocCollapsible_IDct theme-doc-toc-mobile tocMobile_GkuT"><button type="button" class="clean-btn tocCollapsibleButton_trNp">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Claude Code 工作原理：从语言模型到可执行 Agent</h1></header>
+<p>Claude 模型本身不能直接读取本地文件、运行命令或修改代码，但 Claude Code 却可以围绕一个目标连续搜索、编辑、验证并根据错误继续调整。它是怎样把一次模型调用变成一个能够持续行动的 Agent 的？</p>
+<p>要回答这个问题，需要把 Claude Code、Claude 模型、上下文、工具、权限和外部环境之间的关系拆开，再观察它们如何组成“观察、决策、行动、反馈”的循环。</p>
+<p>本文以 Claude Code <code>2.1.88</code> 源码快照为依据，关注这些机制及其边界。具体实现可能随版本变化，但模型与宿主程序的职责划分、工具反馈循环和上下文限制仍然是理解这类 Agent 的基础。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="1-最核心的结论">1. 最核心的结论<a href="#1-最核心的结论" class="hash-link" aria-label="1. 最核心的结论的直接链接" title="1. 最核心的结论的直接链接" translate="no">​</a></h2>
+<p>Claude Code 不是一个语言模型直接控制电脑，也不是一个模型在后  台连续思考。</p>
+<p>它本质上是下面几个部分组成的闭环系统：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">语言模型</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 上下文组装器</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 结构化工具协议</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 工具执行环境</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 权限与安全边界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 会话状态和错误恢复</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 一个可持续行动的编程 Agent</span><br></div></code></pre></div></div>
+<p>如果只保留一句话，可以这样理解：</p>
+<blockquote>
+<p>宿主程序把当前问题和环境信息交给模型，模型提出下一步动作，宿主程序检查并执行动作，再把结果交回模型；这个过程不断重复，直到模型不再要求执行动作，或者系统决定必须停止。</p>
+</blockquote>
+<p>整个系统的核心不是某一个函数，而是一个反复运行的“观察、决策、行动、再观察”循环：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">用户目标</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   ▼</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">整理当前上下文</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   ▼</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型判断下一步</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   ├── 直接回答 ────────────────┐</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   │                            │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   └── 请求使用工具             │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            │                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            ▼                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">       校验与权限判断            │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            │                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            ▼                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">         执行工具                │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            │                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            ▼                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">       把结果放回上下文           │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            │                   │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            └── 再次请求模型 ────┘</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">                                 │</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">                                 ▼</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">                              最终回答</span><br></div></code></pre></div></div>
+<p>模型负责“提出什么动作”，宿主程序负责“这个动作能不能做、怎样做、做完发生了什么”。这条边界是理解整个系统的关键。</p>
+<p>下面的架构图展示了各部分的边界。只有 Claude Code 能直接连接模型、调度工具并控制真实环境；模型本身不直接连接文件系统或 MCP Server。</p>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="2-系统中的四个角色">2. 系统中的四个角色<a href="#2-系统中的四个角色" class="hash-link" aria-label="2. 系统中的四个角色的直接链接" title="2. 系统中的四个角色的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="21-语言模型决策者不是执行者">2.1 语言模型：决策者，不是执行者<a href="#21-语言模型决策者不是执行者" class="hash-link" aria-label="2.1 语言模型：决策者，不是执行者的直接链接" title="2.1 语言模型：决策者，不是执行者的直接链接" translate="no">​</a></h3>
+<p>模型可以：</p>
+<ul>
+<li class="">理解用户目标；</li>
+<li class="">阅读已经提供给它的代码和工具结果；</li>
+<li class="">推测下一步最有价值的动作；</li>
+<li class="">生成文本回答；</li>
+<li class="">生成结构化的工具调用请求；</li>
+<li class="">根据工具错误调整后续方案。</li>
+</ul>
+<p>模型不能直接：</p>
+<ul>
+<li class="">读取本地文件；</li>
+<li class="">执行 Shell 命令；</li>
+<li class="">修改磁盘；</li>
+<li class="">访问一个没有通过工具提供给它的网站；</li>
+<li class="">让操作绕过宿主程序的权限判断；</li>
+<li class="">在两次 API 请求之间自行保存运行状态。</li>
+</ul>
+<p>模型说“我要读取这个文件”和文件真的被读取，是两件完全不同的事情。前者只是模型输出的一段结构化请求，后者是宿主程序执行工具产生的真实副作用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="22-宿主程序agent-的控制器">2.2 宿主程序：Agent 的控制器<a href="#22-宿主程序agent-的控制器" class="hash-link" aria-label="2.2 宿主程序：Agent 的控制器的直接链接" title="2.2 宿主程序：Agent 的控制器的直接链接" translate="no">​</a></h3>
+<p>Claude Code 本身是运行在用户机器上的宿主程序。它负责：</p>
+<ul>
+<li class="">接收用户输入；</li>
+<li class="">选择模型和模型参数；</li>
+<li class="">组装本次模型能看到的上下文；</li>
+<li class="">告诉模型当前有哪些工具；</li>
+<li class="">解析模型的流式输出；</li>
+<li class="">判断模型是否请求了工具；</li>
+<li class="">校验工具参数；</li>
+<li class="">执行权限规则和安全检查；</li>
+<li class="">调用本地工具或远程 MCP 工具；</li>
+<li class="">把执行结果重新加入会话；</li>
+<li class="">决定继续、重试、压缩上下文还是停止；</li>
+<li class="">记录会话，以便恢复。</li>
+</ul>
+<p>所以 Claude Code 的“Agent 性”主要来自宿主程序实现的循环，而不是模型拥有了一个长期运行的心智进程。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="23-工具模型与真实世界之间的动作接口">2.3 工具：模型与真实世界之间的动作接口<a href="#23-工具模型与真实世界之间的动作接口" class="hash-link" aria-label="2.3 工具：模型与真实世界之间的动作接口的直接链接" title="2.3 工具：模型与真实世界之间的动作接口的直接链接" translate="no">​</a></h3>
+<p>工具是受宿主程序控制的能力，例如：</p>
+<ul>
+<li class="">读取文件；</li>
+<li class="">搜索代码；</li>
+<li class="">修改文件；</li>
+<li class="">运行命令；</li>
+<li class="">查询网页；</li>
+<li class="">启动子 Agent；</li>
+<li class="">调用 MCP 服务。</li>
+</ul>
+<p>每个工具都同时包含两层含义：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">给模型看的能力描述</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 工具叫什么、能做什么、参数长什么样</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">给宿主程序运行的实现</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 如何校验、如何授权、如何执行、如何返回结果</span><br></div></code></pre></div></div>
+<p>模型看到的是能力契约，不是工具的实现代码。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="24-用户和策略最终信任边界">2.4 用户和策略：最终信任边界<a href="#24-用户和策略最终信任边界" class="hash-link" aria-label="2.4 用户和策略：最终信任边界的直接链接" title="2.4 用户和策略：最终信任边界的直接链接" translate="no">​</a></h3>
+<p>模型可以建议动作，但不能成为自己行为的最终授权者。</p>
+<p>真正的边界来自：</p>
+<ul>
+<li class="">用户的明确许可；</li>
+<li class="">项目和个人权限规则；</li>
+<li class="">企业策略；</li>
+<li class="">工具自己的安全判断；</li>
+<li class="">沙箱；</li>
+<li class="">Hook 或外部审批系统；</li>
+<li class="">无人值守环境中的默认拒绝策略。</li>
+</ul>
+<p>这使系统形成一个基本原则：</p>
+<blockquote>
+<p>决策能力与授权能力必须分离。</p>
+</blockquote>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="3-一次用户请求为什么会触发多次模型调用">3. 一次用户请求为什么会触发多次模型调用<a href="#3-一次用户请求为什么会触发多次模型调用" class="hash-link" aria-label="3. 一次用户请求为什么会触发多次模型调用的直接链接" title="3. 一次用户请求为什么会触发多次模型调用的直接链接" translate="no">​</a></h2>
+<p>用户看到的是“一次提问”，但 Agent 内部通常会进行多轮模型请求。</p>
+<p>例如用户说：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">把配置字段 oldName 改成 newName，并运行测试。</span><br></div></code></pre></div></div>
+<p>一个可能的真实过程是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">第 1 次模型请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型：先搜索 oldName 出现在哪里</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  输出：搜索工具调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">宿主程序</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  执行搜索，把结果放回会话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 2 次模型请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型：需要读取其中几个文件</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  输出：多个读取工具调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">宿主程序</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  并发读取安全的文件，把内容放回会话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 3 次模型请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型：知道如何修改了</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  输出：编辑工具调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">宿主程序</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  检查权限，修改文件，把编辑结果放回会话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 4 次模型请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型：需要验证</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  输出：测试命令工具调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">宿主程序</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  检查命令权限，运行测试，把输出放回会话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 5 次模型请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型：测试通过，不再请求工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  输出：最终总结</span><br></div></code></pre></div></div>
+<p>因此要区分两个概念：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">用户的一轮对话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  ≠ 一次模型推理</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">用户的一轮对话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 若干次模型推理 + 若干次工具执行 + 一个最终结果</span><br></div></code></pre></div></div>
+<p>模型每次只需要决定“在当前已知信息下，下一步最合理的动作是什么”。它不必在第一轮就准确规划完整过程。这种逐步反馈降低了复杂任务一次性规划失败的风险。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="4-工具调用为什么能够工作">4. 工具调用为什么能够工作<a href="#4-工具调用为什么能够工作" class="hash-link" aria-label="4. 工具调用为什么能够工作的直接链接" title="4. 工具调用为什么能够工作的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="41-工具先被描述成一种结构化语言">4.1 工具先被描述成一种结构化语言<a href="#41-工具先被描述成一种结构化语言" class="hash-link" aria-label="4.1 工具先被描述成一种结构化语言的直接链接" title="4.1 工具先被描述成一种结构化语言的直接链接" translate="no">​</a></h3>
+<p>宿主程序向模型发请求时，不只发送对话文本，还会发送本轮可用工具的结构描  述。</p>
+<p>抽象来看，一个工具描述类似：</p>
+<div class="language-json codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-json codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;name&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;Read&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;description&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;读取指定文件&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;input_schema&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;path&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;string&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;offset&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;number&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;limit&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;number&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token punctuation" style="color:#393A34">}</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">}</span><br></div></code></pre></div></div>
+<p>这相当于给模型增加了一套动作语言。模型不必用自然语言说“请帮我读取文件”，而是可以输出机器可解析的内容：</p>
+<div class="language-json codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-json codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;type&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;tool_use&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;id&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;tool-123&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;name&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;Read&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;input&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;path&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;src/app.ts&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token punctuation" style="color:#393A34">}</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">}</span><br></div></code></pre></div></div>
+<p>这里仍然没有发生文件读取。它只是一个动作提案。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="42-宿主程序把动作提案变成真实操作">4.2 宿主程序把动作提案变成真实操作<a href="#42-宿主程序把动作提案变成真实操作" class="hash-link" aria-label="4.2 宿主程序把动作提案变成真实操作的直接链接" title="4.2 宿主程序把动作提案变成真实操作的直接链接" translate="no">​</a></h3>
+<p>收到工具请求后，宿主程序通常要经过下面这些门：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">工具是否真实存在</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 参数结构是否合法</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 参数在当前环境中是否合理</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Hook 是否允许或修改它</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 权限规则是否允许</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 是否需要用户确认</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 是否应在沙箱中执行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 才调用真实工具</span><br></div></code></pre></div></div>
+<p>任何一层失败，都可以阻止工具执行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="43-工具结果为什么还要交回模型">4.3 工具结果为什么还要交回模型<a href="#43-工具结果为什么还要交回模型" class="hash-link" aria-label="4.3 工具结果为什么还要交回模型的直接链接" title="4.3 工具结果为什么还要交回模型的直接链接" translate="no">​</a></h3>
+<p>模型无法自动看到操作系统中刚刚发生的事情。工具执行完成后，宿主程序必须显式构造一个与工具调用 ID 配对的结果：</p>
+<div class="language-json codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-json codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;type&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;tool_result&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;tool_use_id&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;tool-123&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;content&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;文件内容……&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">}</span><br></div></code></pre></div></div>
+<p>下一次请求模型时，这个结果会成为上下文的一部分。模型因此获得新的观察，再决定下一步。</p>
+<p>这就是 Agent 的反馈闭环：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型提出动作</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 环境执行动作</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 环境返回观察</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 模型根据观察继续决策</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="44-工具失败也具有信息价值">4.4 工具失败也具有信息价值<a href="#44-工具失败也具有信息价值" class="hash-link" aria-label="4.4 工具失败也具有信息价值的直接链接" title="4.4 工具失败也具有信息价值的直接链接" translate="no">​</a></h3>
+<p>如果参数错误、权限被拒绝、命令失败或文件不存在，宿主程序通常不会直接让整个 Agent 崩溃，而是把错误包装 成工具结果交回模型。</p>
+<p>于是模型可能进行自我修正：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">第一次：读取错误路径</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 工具返回文件不存在</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第二次：模型根据错误搜索正确路径</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 找到文件</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第三次：重新读取</span><br></div></code></pre></div></div>
+<p>所谓“Agent 会纠错”，通常不是模型撤销了内部思考，而是外部环境把失败作为新的观察反馈给它。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="45-为什么工具调用和结果必须配对">4.5 为什么工具调用和结果必须配对<a href="#45-为什么工具调用和结果必须配对" class="hash-link" aria-label="4.5 为什么工具调用和结果必须配对的直接链接" title="4.5 为什么工具调用和结果必须配对的直接链接" translate="no">​</a></h3>
+<p>每个工具请求都有唯一 ID，结果必须引用同一个 ID。这个配对有三个目的：</p>
+<ul>
+<li class="">让模型知道结果属于哪个动作；</li>
+<li class="">支持一轮中存在多个工具调用；</li>
+<li class="">在中断和错误情况下保持消息协议合法。</li>
+</ul>
+<p>即使一个工具没有真正执行，例如被用户中断，宿主程序也往往需要生成一个“已中断”的结果。否则下一次模型请求会看到一个永远没有结果的动作，协议状态就不完整了。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="5-agent-循环是一台状态机">5. Agent 循环是一台状态机<a href="#5-agent-循环是一台状态机" class="hash-link" aria-label="5. Agent 循环是一台状态机的直接链接" title="5. Agent 循环是一台状态机的直接链接" translate="no">​</a></h2>
+<p>Claude Code 的核心可以抽象成一台状态机：</p>
+<!-- -->
+<p>这台状态机保存的不是模型内部思想，而是宿主程序能够观察和管理的状态，例如：</p>
+<ul>
+<li class="">当前消息历史；</li>
+<li class="">本轮已经产生的工具请求；</li>
+<li class="">工具执行结果；</li>
+<li class="">当前权限模式；</li>
+<li class="">是否被中断；</li>
+<li class="">已经使用了多少轮；</li>
+<li class="">是否已经尝试过上下文压缩；</li>
+<li class="">是否正在进行错误恢复；</li>
+<li class="">还有多少预算。</li>
+</ul>
+<p>这也解释了为什么 Agent 可以在模型请求之间保持连续性：连续性由宿主程序保存并在下一次请求时重新提供，而不是模型进程一直保持激活。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="6-上下文才是模型的当前世界">6. 上下文才是模型的“当前世界”<a href="#6-上下文才是模型的当前世界" class="hash-link" aria-label="6. 上下文才是模型的“当前世界”的直接链接" title="6. 上下文才是模型的“当前世界”的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="61-模型没有直接访问整个会话和项目">6.1 模型没有直接访问整个会话和项目<a href="#61-模型没有直接访问整个会话和项目" class="hash-link" aria-label="6.1 模型没有直接访问整个会话和项目的直接链接" title="6.1 模型没有直接访问整个会话和项目的直接链接" translate="no">​</a></h3>
+<p>每次调用模型时，模型只能看到本次请求中实际发送的内容。它不会天然看到：</p>
+<ul>
+<li class="">完整项目；</li>
+<li class="">终端当前屏幕；</li>
+<li class="">磁盘最新状态；</li>
+<li class="">所有历史对话；</li>
+<li class="">上一次调用后宿主程序内部发生的一切。</li>
+</ul>
+<p>Claude Code 必须把它认为有用的信息编译成一次请求。这些信息可能包括：</p>
+<ul>
+<li class="">系统行为说明；</li>
+<li class="">用户当前目标；</li>
+<li class="">选定的历史消息；</li>
+<li class="">已执行工具的结果；</li>
+<li class="">IDE 选区；</li>
+<li class="">文件变化；</li>
+<li class="">工作目录和环境信息；</li>
+<li class="">可用工具的结构；</li>
+<li class="">项目说明文件；</li>
+<li class="">Skill 展开的指令；</li>
+<li class="">恢复或压缩产生的摘要。</li>
+</ul>
+<p>所以模型所处的“世界”不是现实环境，而是宿主程序构造出的上下文投影。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="62-四种状态不要混为一谈">6.2 四种状态不要混为一谈<a href="#62-四种状态不要混为一谈" class="hash-link" aria-label="6.2 四种状态不要混为一谈的直接链接" title="6.2 四种状态不要混为一谈的直接链接" translate="no">​</a></h3>
+<p>Claude Code 同时存在四类状态：</p>
+<table><thead><tr><th>状态</th><th>含义</th></tr></thead><tbody><tr><td>界面状态</td><td>用户在终端中看到的流式文字、Spinner、确认框</td></tr><tr><td>会话记录</td><td>为恢复和审计保存的消息与工具事件</td></tr><tr><td>模型上下文</td><td>当前这一次 API 请求真正发送给模型的内容</td></tr><tr><td>外部环境</td><td>磁盘、Git、进程、网络服务的真实状态</td></tr></tbody></table>
+<p>它们通常相关，但并不相等。</p>
+<p>例如：</p>
+<ul>
+<li class="">一条流式文字可能正在界面显示，但还没有成为完整消息；</li>
+<li class="">一段旧工具输出可能存在会话记录中，但因上下文太长而不再发送给模型；</li>
+<li class="">文件已经被用户在外部编辑，但模型要等宿主程序提供文件变化后才能知道；</li>
+<li class="">某些系统进度消息只用于 UI，不会进入模型上下文。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="63-每次请求都要重新组装上下文">6.3 每次请求都要重新组装上下文<a href="#63-每次请求都要重新组装上下文" class="hash-link" aria-label="6.3 每次请求都要重新组装上下文的直接链接" title="6.3 每次请求都要重新组装上下文的直接链接" translate="no">​</a></h3>
+<p>在一次工具续轮之后，宿主程序通常构造这样的新上下文：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">此前仍然有效的历史</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 模型刚刚输出的文字、思考块和工具请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 对应的工具结果</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  + 工具执行期间出现的新环境信息</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 下一次模型请求</span><br></div></code></pre></div></div>
+<p>在发送之前，还要进行协议规范化，例如：</p>
+<ul>
+<li class="">合并可以合并的连续消息；</li>
+<li class="">去掉只服务于 UI 的内容；</li>
+<li class="">修复不完整的工具调用和结果；</li>
+<li class="">删除不符合 API 约束的空消息；</li>
+<li class="">确保思考块和普通内容的排列合法；</li>
+<li class="">只发送本轮真正可用的工具描述。</li>
+</ul>
+<p>可以把这一步理解为“上下文编译”：内部状态很丰富，但必须被编译成模型 API 能理解、长度允许、语义完整的请求。</p>
+<!-- -->
+<p>这张图中的多个输入并不是简单拼接。Claude Code 会根据当前状态选择内容，并且可能用摘要或文件引用替代原始大段信息。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="7-claude-code-所谓的记忆是什么">7. Claude Code 所谓的“记忆”是什么<a href="#7-claude-code-所谓的记忆是什么" class="hash-link" aria-label="7. Claude Code 所谓的“记忆”是什么的直接链接" title="7. Claude Code 所谓的“记忆”是什么的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="71-模型本身不保存跨请求记忆">7.1 模型本身不保存跨请求记忆<a href="#71-模型本身不保存跨请求记忆" class="hash-link" aria-label="7.1 模型本身不保存跨请求记忆的直接链接" title="7.1 模型本身不保存跨请求记忆的直接链接" translate="no">​</a></h3>
+<p>模型 API 基本上是无状态的。每次请求都像重新唤醒一个模型实例，并把当前需要它知道的信息重新告诉它。</p>
+<p>它表现得记得前文，是因为历史被再次发送了。</p>
+<p>它表现得记得工具操作，是因为工具结果被发送了。</p>
+<p>它表现得能恢复会话，是因为本地保存的记录被重新读取并重建成上下文。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="72-会话记录不等于模型记忆">7.2 会话记录不等于模型记忆<a href="#72-会话记录不等于模型记忆" class="hash-link" aria-label="7.2 会话记录不等于模型记忆的直接链接" title="7.2 会话记录不等于模型记忆的直接链接" translate="no">​</a></h3>
+<p>完整会话可以被持久化，但上下文窗口有限，不可能永远把所有记录原样发送给模型。</p>
+<p>因此系统会进行多层处理：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">完整会话记录</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 选择当前有效边界之后的消息</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 缩减过大的旧工具结果</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 清理低价值内容</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 必要时生成摘要</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 得到本轮模型上下文</span><br></div></code></pre></div></div>
+<p>这意味着：</p>
+<blockquote>
+<p>“系统存过这条信息”不等于“模型当前还看得到这条信息”。</p>
+</blockquote>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="73-压缩不是无损存储">7.3 压缩不是无损存储<a href="#73-压缩不是无损存储" class="hash-link" aria-label="7.3 压缩不是无损存储的直接链接" title="7.3 压缩不是无损存储的直接链接" translate="no">​</a></h3>
+<p>上下文接近上限时，Claude Code 会把较早的对话和工具结果压缩成摘要，再保留近期、关键或尚未完成的内容。</p>
+<p>压缩解决的是容量问题，但会引入信息损失：</p>
+<ul>
+<li class="">具体命令参数可能被概括；</li>
+<li class="">某个失败尝试的细节可能丢失；</li>
+<li class="">文件内容可能只剩结论；</li>
+<li class="">原始措辞和细粒度因果关系可能不再存在。</li>
+</ul>
+<p>因此长会话中的 Agent 并不是拥有无限记忆，而是在不断维护一个有损的工作记忆。</p>
+<p>这也是为什么重要约束最好写入项目说明、测试或代码，而不是只在很早的一轮对话中提过一次。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="8-thinking-是什么不是什么">8. Thinking 是什么，不是什么<a href="#8-thinking-是什么不是什么" class="hash-link" aria-label="8. Thinking 是什么，不是什么的直接链接" title="8. Thinking 是什么，不是什么的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="81-thinking-是模型响应的一种内容块">8.1 Thinking 是模型响应的一种内容块<a href="#81-thinking-是模型响应的一种内容块" class="hash-link" aria-label="8.1 Thinking 是模型响应的一种内容块的直接链接" title="8.1 Thinking 是模型响应的一种内容块的直接链接" translate="no">​</a></h3>
+<p>支持扩展思考的模型可以在最终文本或工具请求之前产生 thinking 内容。宿主程序可以选择：</p>
+<ul>
+<li class="">开启或关闭；</li>
+<li class="">使用固定思考预算；</li>
+<li class="">让模型自适应决定思考量；</li>
+<li class="">在 UI 中显示、折叠或隐藏；</li>
+<li class="">接收被服务端隐藏的 redacted thinking。</li>
+</ul>
+<p>从系统角度看，thinking 仍然只是模型响应协议中的一种内容块。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="82-thinking-不直接控制工具">8.2 Thinking 不直接控制工具<a href="#82-thinking-不直接控制工具" class="hash-link" aria-label="8.2 Thinking 不直接控制工具的直接链接" title="8.2 Thinking 不直接控制工具的直接链  接" translate="no">​</a></h3>
+<p>宿主程序不会因为 thinking 中写了“我要删除文件”就真的删除文件。可执行动作必须以正式的结构化工具请求出现，并经过完整的校验与权限流程。</p>
+<p>因此有一条重要边界：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">thinking</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 模型生成决策的中间内容</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">tool_use</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 宿主程序可以解析和审查的动作提案</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">真实副作用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 动作提案通过权限后，由工具实现产生</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="83-thinking-不等于长期记忆">8.3 Thinking 不等于长期记忆<a href="#83-thinking-不等于长期记忆" class="hash-link" aria-label="8.3 Thinking 不等于长期记忆的直接链接" title="8.3 Thinking 不等于长期记忆的直接链接" translate="no">​</a></h3>
+<p>原始 thinking、会话摘要和最终回答是三类不同内容：</p>
+<ul>
+<li class="">thinking 是某次推理输出的一 部分；</li>
+<li class="">摘要是为节省上下文而生成的历史压缩；</li>
+<li class="">最终回答是面向用户的结果。</li>
+</ul>
+<p>旧 thinking 还可能因为签名、模型或 API 合法性要求而被清理。不能把它当成一个稳定、永久、可恢复的内部思维档案。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="84-thinking-也不是可信的安全依据">8.4 Thinking 也不是可信的安全依据<a href="#84-thinking-也不是可信的安全依据" class="hash-link" aria-label="8.4 Thinking 也不是可信的安全依据的直接链接" title="8.4 Thinking 也不是可信的安全依据的直接链接" translate="no">​</a></h3>
+<p>无论模型在 thinking 中怎样解释自己的意图，安全系统都不应只相信它的自述。权限判断应基于可观察的工具名称、结构化参数、路径、命令和策略，而不是“模型说它没有恶意”。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="9-流式输出为什么不仅是逐字打印">9. 流式输出为什么不仅是逐字打印<a href="#9-流式输出为什么不仅是逐字打印" class="hash-link" aria-label="9. 流式输出为什么不仅是逐字打印的直接链接" title="9. 流式输出为什么不仅是逐字打印的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="91-流里有两类信息">9.1 流里有两类信息<a href="#91-流里有两类信息" class="hash-link" aria-label="9.1 流里有两类信息的直接链接" title="9.1 流里有两类信息的直接链接" translate="no">​</a></h3>
+<p>模型流式响应不只有文本字符，还包含结构事件，例如：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">消息开始</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">内容块开始</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">文本增量</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">思考增量</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具参数 JSON 增量</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">内容块结束</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">使用量和停止原因</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">消息结束</span><br></div></code></pre></div></div>
+<p>因此 Claude Code 的流处理同时服务两个目标：</p>
+<ul>
+<li class="">让用户尽快看到文字和状态变化；</li>
+<li class="">把不完整的增量最终组装成语义完整的消息或工具请求。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="92-临时显示与正式消息分离">9.2 临时显示与正式消息分离<a href="#92-临时显示与正式消息分离" class="hash-link" aria-label="9.2 临时显示与正式消息分离的直接链接" title="9.2 临时显示与正式消息分离的直接链接" translate="no">​</a></h3>
+<p>用户在屏幕上看到的逐字输出属于临时 UI 状态。只有当一个内容块完整结束后，它才适合作为正式语义单元进入消息历史。</p>
+<p>这种分离非常重要：</p>
+<ul>
+<li class="">半截 JSON 不能执行；</li>
+<li class="">半截 thinking 不能视为完整消息；</li>
+<li class="">网络中断时，临时显示不一定适合进入下一次模型上下文；</li>
+<li class="">完整块才能稳定地持久化和恢复。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="93-为什么工具可以在整条回复结束前开始执行">9.3 为  什么工具可以在整条回复结束前开始执行<a href="#93-为什么工具可以在整条回复结束前开始执行" class="hash-link" aria-label="9.3 为什么工具可以在整条回复结束前开始执行的直接链接" title="9.3 为什么工具可以在整条回复结束前开始执行的直接链接" translate="no">​</a></h3>
+<p>如果一个工具调用块已经完整结束，即使模型还在输出后续内容，宿主程序也可以提前开始执行该工具。</p>
+<!-- -->
+<p>这样可以降低延迟：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型继续生成后面的内容</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">          与</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具开始读取文件或查询服务</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">          同时进行</span><br></div></code></pre></div></div>
+<p>但它也增加了复杂度。宿主程序必须处理：</p>
+<ul>
+<li class="">后续流突然失败；</li>
+<li class="">流式请求改为非流式重试；</li>
+<li class="">同一个工具请求不能被重复执行；</li>
+<li class="">中断后必须补齐协议结果；</li>
+<li class="">并行完成顺序不能破坏逻辑顺序。</li>
+</ul>
+<p>所以“流式工具执行”本质上是一种降低延迟的投机执行机制，需要额外的一致性保护。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="10-工具为什么有时并发有时串行">10. 工具为什么有时并发、有时串行<a href="#10-工具为什么有时并发有时串行" class="hash-link" aria-label="10. 工具为什么有时并发、有时串行的直接链接" title="10. 工具为什么有时并发、有时串行的直接链接" translate="no">​</a></h2>
+<p>模型可以在一轮输出多个工具请求。宿主程序不会简单地把所有工具同时运行。</p>
+<p>判断重点不是“这个工具看起来快不快”，而是它们是否可以安全地并发。</p>
+<p>适合并发的例子：</p>
+<ul>
+<li class="">读取互不相关的多个文件；</li>
+<li class="">执行多个只读搜索；</li>
+<li class="">查询多个互不依赖的资源。</li>
+</ul>
+<p>通常需要串行的例子：</p>
+<ul>
+<li class="">连续修改同一个文件；</li>
+<li class="">前一个命令会改变后一个命令的输入；</li>
+<li class="">会改变工作目录、权限或 Agent 上下文的操作；</li>
+<li class="">具有不可逆副作用的动作。</li>
+</ul>
+<p>即使多个工具并发完成，宿主程序也可能按照模型原始请求顺序应用它们产生的上下文变化。这样能避免“谁先跑完”随机改变下一轮语义。</p>
+<p>因此并发策略遵循的是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">执行可以并行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  但语义提交必须确定</span><br></div></code></pre></div></div>
+<p>这和数据库中“并发工作、按规则提交”的思想相似。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="11-权限安全和沙箱是三件不同的事">11. 权限、安全和沙箱是三件不同的事<a href="#11-权限安全和沙箱是三件不同的事" class="hash-link" aria-label="11. 权限、 安全和沙箱是三件不同的事的直接链接" title="11. 权限、安全和沙箱是三件不同的事的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="111-能力授权隔离">11.1 能力、授权、隔离<a href="#111-能力授权隔离" class="hash-link" aria-label="11.1 能力、授权、隔离的直接链接" title="11.1 能力、授权、隔离的直接链接" translate="no">​</a></h3>
+<p>安全系统中最容易混淆的是下面三个概念：</p>
+<table><thead><tr><th>概念</th><th>回答的问题</th></tr></thead><tbody><tr><td>能力暴露</td><td>模型本轮是否知道这个工具存在</td></tr><tr><td>权限授权</td><td>这个具体动作是否允许执行</td></tr><tr><td>沙箱隔离</td><td>即使执行，它能影响多大的环境范围</td></tr></tbody></table>
+<p>例如模型可以看到 Bash 工具，不代表任何命令都会执行；命令得到授权，也不代表它一定在完全不受限制的系统环境中运行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="112-权限是分层决策不是一个布尔开关">11.2 权限是分层决策，不是一个布尔开关<a href="#112-权限是分层决策不是一个布尔开关" class="hash-link" aria-label="11.2 权限是分层决策，不是一个布尔开关的直接链接" title="11.2 权限是分层决策，不是一个布尔开关的直接链接" translate="no">​</a></h3>
+<p>一个动作是否允许，通常需要综合：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">企业和管理员策略</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 用户、项目和会  话规则</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 工具级规则</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 针对具体参数的安全检查</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 当前权限模式</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Hook 或外部审批</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 必要时询问用户</span><br></div></code></pre></div></div>
+<p>结果通常不只有允许和拒绝，而是三态：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">allow：可以执行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">ask：需要进一步决定或询问</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">deny：不能执行</span><br></div></code></pre></div></div>
+<p><code>ask</code> 很重要，因为系统需要表达“这件事不是明确禁止，但也不能自动决定”。</p>
+<p>下面的图只描述通用决策原则。实际工具还可能加入更具体的文件路径、Shell 命令、企业策略和沙箱检查。</p>
+<!-- -->
+<p>权限流程决定“能不能做”，沙箱决定“允许执行后最多能影响哪里”。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="113-为什么-deny-必须比普通-allow-更强">11.3 为什么 deny 必须比普通 allow 更强<a href="#113-为什么-deny-必须比普通-allow-更强" class="hash-link" aria-label="11.3 为什么 deny   必须比普通 allow 更强的直接链接" title="11.3 为什么 deny 必须比普通 allow 更强的直接链接" translate="no">​</a></h3>
+<p>安全规则不能简单采用“最后一条配置覆盖前面配置”。否则一个低信任来源的 allow 就可能覆盖企业策略中的 deny。</p>
+<p>更合理的原则是：</p>
+<ul>
+<li class="">明确 deny 优先；</li>
+<li class="">针对具体危险参数的安全检查优先；</li>
+<li class="">普通 allow 只能在没有更强限制时生效；</li>
+<li class="">权限模式不能随意绕过不可绕过的策略；</li>
+<li class="">没有交互能力时，对 unresolved ask 默认保守处理。</li>
+</ul>
+<p>这解释了为什么某些所谓的“自动接受”或“绕过提示”模式仍然不能突破所有安全边界。它们改变的是常规确认流程，不应取消企业 deny、敏感路径检查或工具自身的安全约束。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="114-权限模式不是沙箱模式">11.4 权限模式不是沙箱模式<a href="#114-权限模式不是沙箱模式" class="hash-link" aria-label="11.4 权限模式不是沙箱模式的直接链接" title="11.4 权限模式不是沙箱模式的直接链接" translate="no">​</a></h3>
+<p>几个常见误解：</p>
+<ul>
+<li class="">自动接受编辑，不等于允许修改任何敏感路径；</li>
+<li class="">不弹确认框，可能意味着 ask 被拒绝，而不是自动允许；</li>
+<li class="">计划模式约束 Agent 的工作方式，但不等于操作系统级隔离；</li>
+<li class="">绕过常规权限提示，也不应绕过硬性 deny 和安全检查；</li>
+<li class="">沙箱降低命令影响范围，但不能代替权限规则。</li>
+</ul>
+<p>权限决定“能否做”，沙箱决定“做了以后最多影响哪里”。两者是互补关系。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="115-为什么无人值守模式通常更保守">11.5 为什么无人值守模式通常更保守<a href="#115-为什么无人值守模式通常更保守" class="hash-link" aria-label="11.5 为什么无人值守模式通常更保守的直接链接" title="11.5 为什么无人值守模式通常更保守的直接链接" translate="no">​</a></h3>
+<p>交互终端可以弹出确认框，但 SDK、后台任务或无头模式可能没有人可以回答。</p>
+<p>此时安全的默认方式是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">如果外部审批 Hook 能决定</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 使用 Hook 的决定</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">如果没有任何机制能解决 ask</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 拒绝，而不是假设允许</span><br></div></code></pre></div></div>
+<p>这是一种 fail closed 原则：失去审批能力时收紧权限，而不是扩大权限。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="12-文件和-shell-为什么需要特殊权限逻辑">12. 文件和 Shell 为什么需要特殊权限逻辑<a href="#12-文件和-shell-为什么需要特殊权限逻辑" class="hash-link" aria-label="12. 文件和 Shell 为什么需要特殊权限逻辑的直接链接" title="12. 文件和 Shell 为什么需要特殊权限逻辑的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="121-文件路径不是普通字符串">12.1 文件路径不是普通字符串<a href="#121-文件路径不是普通字符串" class="hash-link" aria-label="12.1 文件路径不是普通字符串的直接链接" title="12.1 文件路径不是普通字符串的直接链接" translate="no">​</a></h3>
+<p>如果只检查用户输入的路径字符串，很容易被符号链接或路径变形绕过。</p>
+<p>可靠的文件权限判断需要考虑：</p>
+<ul>
+<li class="">原始路径；</li>
+<li class="">相对路径解析后的绝对位置；</li>
+<li class="">中间目录中的符号链接；</li>
+<li class="">最终真实路径；</li>
+<li class="">目标不存在时最近的真实父目录；</li>
+<li class="">悬空符号链接的目标；</li>
+<li class=""><code>.git</code>、编辑器配置、Shell 配置等敏感位置。</li>
+</ul>
+<p>因此“允许编辑项目目录”不是简单判断字符串是否以项目路径开头，而是要判断动作最终会作用到哪里。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="122-shell-命令也不是普通字符串">12.2 Shell 命令也不是普通字符串<a href="#122-shell-命令也不是普通字符串" class="hash-link" aria-label="12.2 Shell 命令也不是普通字符串的直接链接" title="12.2 Shell 命令也不是普通字符串的直接链接" translate="no">​</a></h3>
+<p>命令中可能包含：</p>
+<ul>
+<li class="">管道；</li>
+<li class=""><code>&amp;&amp;</code> 和 <code>||</code>；</li>
+<li class="">重定向；</li>
+<li class="">子命令；</li>
+<li class="">环境变量前缀；</li>
+<li class="">命令替换；</li>
+<li class="">多条复合语句。</li>
+</ul>
+<p>如果权限系统只检查开头的命令名，就可能允许：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">一个看似安全的命令 &amp;&amp; 一个危险命令</span><br></div></code></pre></div></div>
+<p>因此 Shell 权限需要尽量理解命令结构，对复合命令中的各部分、涉及路径以及是否脱离沙箱进行判断。</p>
+<p>这仍然不能让任意 Shell 分析变得绝对完美，所以显式用户确认、沙箱和最小权限仍然必要。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="13-hook-的原理给-agent-循环插入外部治理逻辑">13. Hook 的原理：给 Agent 循环插入外部治理逻辑<a href="#13-hook-的原理给-agent-循环插入外部治理逻辑" class="hash-link" aria-label="13. Hook 的原理：给 Agent 循环插入外部治理逻辑的直接链接" title="13. Hook 的原理：给 Agent 循环插入外部治理逻辑的直接链接" translate="no">​</a></h2>
+<p>Hook 可以理解为宿主程序在关键事件上开放的中间件接口。</p>
+<p>常见插入点包括：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">用户输入模型之前</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具执行之前</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">需要权限决定时</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具成功之后</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具失败之后</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型准备结束时</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">子 Agent 准备结束时</span><br></div></code></pre></div></div>
+<p>Hook 可以做的事情包括：</p>
+<ul>
+<li class="">阻止一次输入或工具调用；</li>
+<li class="">修改工具参数；</li>
+<li class="">提供额外上下文；</li>
+<li class="">代表外部系统批准或拒绝；</li>
+<li class="">记录审计信息；</li>
+<li class="">要求模型根据检查结果继续修正；</li>
+<li class="">在 CI、企业审批或自定义策略中接管部分决策。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="131-hook-allow-不是绝对授权">13.1 Hook allow 不是绝对授权<a href="#131-hook-allow-不是绝对授权" class="hash-link" aria-label="13.1 Hook allow 不是绝对授权的直接链接" title="13.1 Hook allow 不是绝对授权的直接链接" translate="no">​</a></h3>
+<p>如果一个前置 Hook 表示允许，宿主程序仍可能继续检查：</p>
+<ul>
+<li class="">企业 deny；</li>
+<li class="">明确 ask 规则；</li>
+<li class="">敏感路径；</li>
+<li class="">工具自己的安全限制；</li>
+<li class="">必须由用户参与的操作。</li>
+</ul>
+<p>合理的语义是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Hook allow</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = Hook 这一层没有反对</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">最终 allow</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 所有不能被绕过的层都没有反对</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="132-stop-hook-为什么可以让模型继续">13.2 Stop Hook 为什么可以让模型继续<a href="#132-stop-hook-为什么可以让模型继续" class="hash-link" aria-label="13.2 Stop Hook 为什么可以让模型继续的直接链接" title="13.2 Stop Hook 为什么可以让模型继续的直接链接" translate="no">​</a></h3>
+<p>模型输出最终文本后，宿主程序可以运行结束检查。如果检查发现任务没有达到要求，例如测试未通过或输出缺少必要内容，它可以把错误作为新上下文，再调用一次模型。</p>
+<p>所以“模型已经停止生成”不一定等于“Agent 生命周期已经结束”。最终停止权属于外层状态机。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="14-mcp-的本质把远程能力接入同一种工具协议">14. MCP 的本质：把远程能力接入同一种工具协议<a href="#14-mcp-的本质把远程能力接入同一种工具协议" class="hash-link" aria-label="14. MCP 的本质：把远程能力接入同一种工具协议的直接链接" title="14. MCP 的本质：把远程能力接入同一种工具协议的直接链接" translate="no">​</a></h2>
+<p>MCP 并没有改变 Agent 的基本原理。它做的是让外部服务以统一方式提供：</p>
+<ul>
+<li class="">工具描述；</li>
+<li class="">输入 schema；</li>
+<li class="">结构化结果；</li>
+<li class="">资源或提示信息。</li>
+</ul>
+<!-- -->
+<p>Tools、Resources 和 Prompts 是 Server 提供给 Client 的能力或内容；Roots 的方向相反，是 Client 告诉 Server 可以在哪些范围内工作。</p>
+<p>模型看到 MCP 工具后，仍然只是产生结构化工具请求；宿主程序仍然负责权限和调用；结果仍然要回到下一轮上下文。</p>
+<p>但 MCP 增加了新的信任边界：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">是否允许连接这个服务</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 是否允许向模型暴露这个服务的工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 是否允许调用某个具体工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 是否信任返回内容只作为数据而不是指令</span><br></div></code></pre></div></div>
+<p>远程服务自称“只读”只能作为调度提示，不能自动成为安全证明。服务配置、企业策略、具体工具权限和用户授权仍然需要独立存在。</p>
+<p>从安全角度看，MCP 返回的数据还可能包含提示注入内容。模型可以阅读这些数据，但宿主程序不应因此取消本地权限边界。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="15-skill-的本质改变上下文不直接获得权限">15. Skill 的本质：改变上下文，不直接获得权限<a href="#15-skill-的本质改变上下文不直接获得权限" class="hash-link" aria-label="15. Skill 的本质：改变上下文，不直接获得权限的直接链接" title="15. Skill 的本质：改变上下文，不直接获得权限的直接链接" translate="no">​</a></h2>
+<p>Skill 通常用于向模型注入某一类任务的专门说明、流程、模板或资源。</p>
+<p>它主要改变的是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型知道什么</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型应该按什么步骤思考</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型应该优先使用哪些工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型应该怎样组织结果</span><br></div></code></pre></div></div>
+<p>Skill 本身不应等价于获得额外系统权限。加载了一个部署 Skill，不代表模型就自动有权执行生产部署；实际动作仍然需要经过对应工具和权限链。</p>
+<p>因此 Skill 属于“认知和流程扩展”，工具属于“行动能力扩展”，权限属于“行动边界”。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="16-错误恢复为什么分很多层">16. 错误恢复为什么分很多层<a href="#16-错误恢复为什么分很多层" class="hash-link" aria-label="16. 错误恢复为什么分很多层的直接链接" title="16. 错误恢复为什么分很多层的直接链接" translate="no">​</a></h2>
+<p>系统中的“重试”并不是一种统一行为。不同错误发生在不同层，如果混在一起处理，很容易重复执行有副作用的工具。</p>
+<!-- -->
+<p>图中的回路语义不同：HTTP 重试是在尝试完成同一个请求，而 Agent 续轮、压缩和错误反馈都会改变下一次模型看到的输入。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="161-网络或-api-重试">16.1 网络或 API 重试<a href="#161-网络或-api-重试" class="hash-link" aria-label="16.1 网络或 API 重试的直接链接" title="16.1 网络或 API 重试的直接链接" translate="no">​</a></h3>
+<p>这一层的目标是完成同一次模型请求，例如处理：</p>
+<ul>
+<li class="">临时网络失败；</li>
+<li class="">限流；</li>
+<li class="">服务过载；</li>
+<li class="">身份认证刷新；</li>
+<li class="">流连接失败。</li>
+</ul>
+<p>原则上它不 应该被视为一个新的 Agent 决策轮。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="162-流式请求降级">16.2 流式请求降级<a href="#162-流式请求降级" class="hash-link" aria-label="16.2 流式请求降级的直接链接" title="16.2 流式请求降级的直接链接" translate="no">​</a></h3>
+<p>如果流式响应失败，系统可能改用非流式请求。危险之处在于：流失败前可能已经产生并启动了工具调用。</p>
+<p>因此降级时必须知道：</p>
+<ul>
+<li class="">哪些工具只是部分生成；</li>
+<li class="">哪些工具已经完整生成；</li>
+<li class="">哪些已经执行；</li>
+<li class="">新请求是否可能再次生成同一个工具调用。</li>
+</ul>
+<p>防止重复副作用，是这一层最重要的一致性问题。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="163-agent-续轮">16.3 Agent 续轮<a href="#163-agent-续轮" class="hash-link" aria-label="16.3 Agent 续轮的直接链接" title="16.3 Agent 续轮的直接链接" translate="no">​</a></h3>
+<p>工具执行完成后再次调用模型，不是失败重试，而是正常的反馈循环。此时新请求包含了新的工具结果，语义已经发生变化。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="164-上下文恢复">16.4 上下文恢复<a href="#164-上下文恢复" class="hash-link" aria-label="16.4 上下文恢复的直接链接" title="16.4 上下文恢复的直接链接" translate="no">​</a></h3>
+<p>当输入过长时，系统可以：</p>
+<ul>
+<li class="">删除低价值的旧结果；</li>
+<li class="">把大型工具输出改成摘要或文件引用；</li>
+<li class="">压缩旧历史；</li>
+<li class="">在压缩后重新调用模型。</li>
+</ul>
+<p>这是“改变输入后再试”，不是原请求的简单重放。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="165-输出截断恢复">16.5 输出截断恢复<a href="#165-输出截断恢复" class="hash-link" aria-label="16.5 输出截断恢复的直接链 接" title="16.5 输出截断恢复的直接链接" translate="no">​</a></h3>
+<p>模型达到最大输出 token 时，系统可以增大输出额度，或者把已截断内容放回历史并要求继续。</p>
+<p>这要求宿主程序判断已有输出能否作为合法上下文，尤其要处理未完整的 thinking 或工具块。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="166-权限和工具错误恢复">16.6 权限和工具错误恢复<a href="#166-权限和工具错误恢复" class="hash-link" aria-label="16.6 权限和工具错误恢复的直接链接" title="16.6 权限和工具错误恢复的直接链接" translate="no">​</a></h3>
+<p>权限拒绝或工具失败通常会作为观察交给模型。模型可以换一种安全方案，也可能重复提出同样动作。</p>
+<p>系统需要限制无限重复，例如：</p>
+<ul>
+<li class="">最大 Agent 轮数；</li>
+<li class="">token 或费用预算；</li>
+<li class="">连续拒绝计数；</li>
+<li class="">Hook 阻止继续；</li>
+<li class="">用户中断。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="17-中断为什么要贯穿整个系统">17. 中断为什么要贯穿整个系统<a href="#17-中断为什么要贯穿整个系统" class="hash-link" aria-label="17. 中断为什么要贯穿整个系统的直接链接" title="17. 中断为什么要贯穿整个系统的直接链接" translate="no">​</a></h2>
+<p>用户按下中断后，不能只停止终端显示。中断信号需要传播到：</p>
+<ul>
+<li class="">当前模型请求；</li>
+<li class="">网络流；</li>
+<li class="">正在运行的工具；</li>
+<li class="">Hook；</li>
+<li class="">自动权限分类器；</li>
+<li class="">MCP 请求；</li>
+<li class="">后续 Agent 循环。</li>
+</ul>
+<p>与此同时，系统还要修复消息一致性：</p>
+<ul>
+<li class="">已产生的工具请求需要对应“已中断”结果；</li>
+<li class="">半截流式内容要决定是否保留；</li>
+<li class="">不应在中断后意外启动下一轮模型请求；</li>
+<li class="">新用户输入可能要作为新的方向加入会话。</li>
+</ul>
+<p>所以中断不是一个 UI 功能，而是一种跨模型、工具和状态机传播的协作式取消协议。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="18-agent-到底在什么时候停止">18. Agent 到底在什么时候停止<a href="#18-agent-到底在什么时候停止" class="hash-link" aria-label="18. Agent 到底在什么时候停止的直接链接" title="18. Agent 到底在什么时候停止的直接链接" translate="no">​</a></h2>
+<p>最常见的正常终止条件是：模型产生了最终回答，并且没有再请求任何工具。</p>
+<p>但外层系统还可能因为以下原因结束：</p>
+<ul>
+<li class="">用户中断；</li>
+<li class="">达到最大轮数；</li>
+<li class="">达到 token、费用或任务预算；</li>
+<li class="">上下文无法继续压缩；</li>
+<li class="">模型或网络错误无法恢复；</li>
+<li class="">Hook 明确阻止；</li>
+<li class="">工具阶段无法继续；</li>
+<li class="">权限系统要求停止；</li>
+<li class="">无头环境无法解决必须人工确认的动作。</li>
+</ul>
+<p>反过来，下面这些情况可能让模型“已经回答”后仍继续：</p>
+<ul>
+<li class="">Stop Hook 发现结果不合格；</li>
+<li class="">客户端预算机制要求模型继续补全；</li>
+<li class="">输出达到上限但仍可恢复；</li>
+<li class="">外层工作流要求额外验证。</li>
+</ul>
+<p>因此最终完成是宿主状态机的判断，而不是只读取模型的停止原因。</p>
+<p>还要注意：程序层面的 <code>completed</code> 只说明循环正常收尾，不必然证明用户目标在现实世界中真的成功。真正的成功最好由测试、文件状态或外部系统结果来验证。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="19-会话恢复为什么不是唤醒同一个模型">19. 会话恢复为什么不是“唤醒同一个模型”<a href="#19-会话恢复为什么不是唤醒同一个模型" class="hash-link" aria-label="19. 会话恢复为什么不是“唤醒同一个模型”的直接链接" title="19. 会话恢复为什么不是“唤醒同一个模型”的直接链接" translate="no">​</a></h2>
+<p>恢复会话时，系统做的是重建状态，而不是连接到上一次仍在运行的模型实例。</p>
+<p>大致过程是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">读取持久化会话</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 找到有效历史边界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 修复不完整工具调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 清理空消息和不合法内容块</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 恢复必要的会话元数据</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 重新组装模型上下文</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 发起新的模型请求</span><br></div></code></pre></div></div>
+<p>恢复后的模型之所以表现得像“接着之前工作”，是因为它重新看到了足够的历史和摘要。</p>
+<p>这会带来三个限制：</p>
+<ul>
+<li class="">没有持久化的临时状态无法恢复；</li>
+<li class="">已经被压缩掉的细节只能依赖摘要；</li>
+<li class="">外部环境可能已经变化，历史中的假设不一定仍然成立。</li>
+</ul>
+<p>因此可靠恢复不仅要重放聊天记录，还需要重新观察当前文件、Git 状态和外部服务。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="20-交互模式无头模式和-sdk-的区别">20. 交互模式、无头模式和 SDK 的区别<a href="#20-交互模式无头模式和-sdk-的区别" class="hash-link" aria-label="20. 交互模式、无头模式和 SDK 的区别的直接链接" title="20. 交互模式、无头模式和 SDK 的区别的直接链接" translate="no">​</a></h2>
+<p>它们可以共享同一个 Agent 循环，但外围能力不同。</p>
+<table><thead><tr><th>方面</th><th>交互终端</th><th>无头模式或 SDK</th></tr></thead><tbody><tr><td>输入</td><td>人在终端提交</td><td>参数、stdin 或结构化消息</td></tr><tr><td>输出</td><td>实时 UI</td><td>文本、JSON 或事件流</td></tr><tr><td>权限询问</td><td>可以弹确认框</td><td>需要外部控制协议或 Hook</td></tr><tr><td>中断</td><td>键盘操作</td><td>信号或 API 控制消息</td></tr><tr><td>流式状态</td><td>Spinner、逐字文本、工具 UI</td><td>结构化事件</td></tr><tr><td>默认安全策略</td><td>可以等待用户决定</td><td>无法询问时通常拒绝</td></tr></tbody></table>
+<p>所以差异主要不在“模型更聪明”，而在宿主如何提供输入、显示输出和解决权限询问。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="21-一个完整例子修复测试失败">21. 一个完整例子：修复测试失败<a href="#21-一个完整例子修复测试失败" class="hash-link" aria-label="21. 一个完整例子：修复测试失败的直接链接" title="21. 一个完整例子：修复测试失败的直接链接" translate="no">​</a></h2>
+<p>假设用户要求：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">修复当前失败的单元测试，不要改变对外 API。</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第一步构造初始世界">第一步：构造初始世界<a href="#第一步构造初始世界" class="hash-link" aria-label="第一步：构造初始世界的直接链接" title="第一步：构造初始世界的直接链接" translate="no">​</a></h3>
+<p>宿主程序把以下内容提供给模型：</p>
+<ul>
+<li class="">用户目标；</li>
+<li class="">项目说明；</li>
+<li class="">当前工作目录；</li>
+<li class="">可用工具；</li>
+<li class="">权限规则允许模型感知到的能力；</li>
+<li class="">可能存在的 Git 状态或 IDE 上下文。</li>
+</ul>
+<p>模型此时仍然不知道哪个测试失败，因为测试还没有运行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第二步模型提出观察动作">第二步：模型提出观察动作<a href="#第二步模型提出观察动作" class="hash-link" aria-label="第二步：模型提出观察动作的直接链接" title="第二步：模型提出观察动作的直接链接" translate="no">​</a></h3>
+<p>模型输出一个运行测试的工具请求。宿主程序解析命令，检查：</p>
+<ul>
+<li class="">命令结构是否安全；</li>
+<li class="">是否匹配 deny 或 ask 规则；</li>
+<li class="">是否应进入沙箱；</li>
+<li class="">是否需要用户确认。</li>
+</ul>
+<p>通过后才真正运行测试。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第三步环境反馈">第三步：环境反馈<a href="#第三步环境反馈" class="hash-link" aria-label="第三步：环境反馈的直接链接" title="第三步：环境反馈的直接链接" translate="no">​</a></h3>
+<p>测试输出作为工具结果返回。模型下一轮看到堆栈和失败断言，但它并没有直接“看见终端”，只是看见宿主程序提供的结构化结果。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第四步模型请求更多信息">第四步：模型请求更多信息<a href="#第四步模型请求更多信息" class="hash-link" aria-label="第四步：模型请求更多信息的直接链接" title="第四步：模型请求更多信息的直接链接" translate="no">​</a></h3>
+<p>模型可能并发读取失败测试和实现文件。读取是只读且互不依赖时，可以并发执行。</p>
+<p>如果文件过大，工具可能只返回一部分内容或把完整结果保存到临时位置，避免一次塞满上下文。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第五步模型提出修改">第五步：模型提出修改<a href="#第五步模型提出修改" class="hash-link" aria-label="第五步：模型提出修改的直接链接" title="第五步：模型提出修改的直接链接" translate="no">​</a></h3>
+<p>模型输出编辑请求。宿主程序检查真实路径、符号链接、敏感目录和编辑权限。通过后才写入文件。</p>
+<p>编辑成功结果回到上下文。模型不能只凭“我刚才打算修改”来假设磁盘已经修改成功。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第六步验证">第六步：验证<a href="#第六步验证" class="hash-link" aria-label="第六步：验证的直接链接" title="第六步：验证的直接链接" translate="no">​</a></h3>
+<p>模型再次请求运行测试。测试可能：</p>
+<ul>
+<li class="">通过，于是模型总结结果；</li>
+<li class="">失败，于是失败成为新观察，循环继续；</li>
+<li class="">被拒绝，于是模型尝试更安全的验证方式；</li>
+<li class="">超时或中断，于是系统返回相应错误结果。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="第七步完成判断">第七步：完成判断<a href="#第七步完成判断" class="hash-link" aria-label="第七步：完成判断的直接链接" title="第七步：完成判断的直接链接" translate="no">​</a></h3>
+<p>当模型不再请求工具并给出最终文本，外层还可以执行结束 Hook。若 Hook 要求检查 Git diff 或测试状态，Agent 仍可能继续。</p>
+<p>这个例子中没有任何一步需要模型直接拥有文件系统。它只需要反复：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">根据当前证据提出下一步</span><br></div></code></pre></div></div>
+<p>真正的环境操作全部由宿主控制。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="22-为什么这种架构会表现出自主性">22. 为什么这种架构会表现出“自主性”<a href="#22-为什么这种架构会表现出自主性" class="hash-link" aria-label="22. 为什么这种架构会表现出“自主性”的直接链接" title="22. 为什么这种架构会表现出“自主性”的直接链接" translate="no">​</a></h2>
+<p>Claude Code 看起来能够自主完成任务，主要来自五种机制叠加：</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="221-目标保持">22.1 目标保持<a href="#221-目标保持" class="hash-link" aria-label="22.1 目标保持的直接链接" title="22.1 目标保持的直接链接" translate="no">​</a></h3>
+<p>用户目标和关键约束会持续存在于上下文或摘要中，使模型每轮都能围绕同一任务决策。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="222-环境反馈">22.2 环境反馈<a href="#222-环境反馈" class="hash-link" aria-label="22.2 环境反馈的直接链接" title="22.2 环境反馈的直接链接" translate="no">​</a></h3>
+<p>模型每次行动后都会获得文件、命令、测试或网络结果，不必只凭最初信息猜测。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="223-小步决策">22.3 小步决策<a href="#223-小步决策" class="hash-link" aria-label="22.3 小步决策的直接链接" title="22.3 小步决策的直接链接" translate="no">​</a></h3>
+<p>模型只需选择下一步，而不是一次生成完整且不可修改的计划。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="224-错误可观察">22.4 错误可观察<a href="#224-错误可观察" class="hash-link" aria-label="22.4 错误可观察的直接链接" title="22.4 错误可观察的直接链接" translate="no">​</a></h3>
+<p>失败被转换成新证据，模型可以调整路径。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="225-外层持续调度">22.5 外层持续调度<a href="#225-外层持续调度" class="hash-link" aria-label="22.5 外层持续调度的直接链接" title="22.5 外层持续调度的直接链接" translate="no">​</a></h3>
+<p>宿主程序自动重复请求模型，直到满足停止条件。</p>
+<p>这种“自主性”更接近一个受控反馈系统，而不是一个独立意识：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">自主表现</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  = 目标 + 反馈 + 迭代 + 工具 + 状态管理</span><br></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="23-这套机制的根本限制">23. 这套机制的根本限制<a href="#23-这套机制的根本限制" class="hash-link" aria-label="23. 这套机制的根本限制的直接链接" title="23. 这套机制的根本限制的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="231-模型判断具有概率性">23.1 模型判断具有概率性<a href="#231-模型判断具有概率性" class="hash-link" aria-label="23.1 模型判断具有概率性的直接链接" title="23.1 模型判断具有概率性的直接链接" translate="no">​</a></h3>
+<p>同样的上下文可能产生不同的下一步。工具和权限可以约束动作，但不能保证模型总能选择最佳方案。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="232-上下文是有限且有损的">23.2 上下文是有限且有损的<a href="#232-上下文是有限且有损的" class="hash-link" aria-label="23.2 上下文是有限且有损的的直接链接" title="23.2 上下文是有限且有损的的直接链接" translate="no">​</a></h3>
+<p>长任务中，早期细节可能被压缩。模型不是基于完整历史做决定，而是基于当前上下文投影。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="233-工具结果不一定可信">23.3 工具结果不一定可信<a href="#233-工具结果不一定可信" class="hash-link" aria-label="23.3 工具结果不一定可信的直接链接" title="23.3 工具结果不一定可信的直接链接" translate="no">​</a></h3>
+<p>网页、MCP 服务、仓库文件甚至命令输出都可能包含误导或提示注入。它们应被视为外部数据，而不是自动升级为系统指令。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="234-权限只能控制已建模的边界">23.4 权限只能控制已建模的边界<a href="#234-权限只能控制已建模的边界" class="hash-link" aria-label="23.4 权限只能控制已建模的边界的直接链接" title="23.4 权限只能控制已建模的边界的直接链接" translate="no">​</a></h3>
+<p>权限规则越理解工具参数和真实路径，保护越精细；对于任意 Shell、第三方工具或复杂远程副作用，静态判断不可能完美。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="235-工具副作用未必可撤销">23.5   工具副作用未必可撤销<a href="#235-工具副作用未必可撤销" class="hash-link" aria-label="23.5 工具副作用未必可撤销的直接链接" title="23.5 工具副作用未必可撤销的直接链接" translate="no">​</a></h3>
+<p>读取失败可以重试，但发送请求、删除远程资源、发布版本等动作可能无法安全重放。宿主程序必须避免把模型/API retry 和工具 retry 混为一谈。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="236-最终文本不等于真实成功">23.6 最终文本不等于真实成功<a href="#236-最终文本不等于真实成功" class="hash-link" aria-label="23.6 最终文本不等于真实成功的直接链接" title="23.6 最终文本不等于真实成功的直接链接" translate="no">​</a></h3>
+<p>模型说“已修复”只是一个语言输出。可靠性来自测试、类型检查、Git diff 和外部状态验证，而不是来自回答语气有多确定。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="24-用几个问题检验是否真正理解">24. 用几个问题检验是否真正理解<a href="#24-用几个问题检验是否真正理解" class="hash-link" aria-label="24. 用几个问题检验是否真正理解的直接链接" title="24. 用几个问题检验是否真正理解的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="模型能直接运行命令吗">模型能直接运行命令吗？<a href="#模型能直接运行命令吗" class="hash-link" aria-label="模型能直接运行命令吗？的直接链接" title="模型能直接运行命令吗？的直接链接" translate="no">​</a></h3>
+<p>不能。模型只能生成命令工具请求，宿主程序授权并执行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="模型能看到完整仓库吗">模型能看到完整仓库吗？<a href="#模型能看到完整仓库吗" class="hash-link" aria-label="模型能看到完整仓库吗？的直接链接" title="模型能看到完整仓库吗？的直接链接" translate="no">​</a></h3>
+<p>不能。它只能看到被放进当前上下文的文件内容、搜索结果和环境信息。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="为什么工具结果在下一轮很重要">为什么工具结果在下一轮很重要？<a href="#为什么工具结果在下一轮很重要" class="hash-link" aria-label="为什么工具结果在下一轮很重要？的直接链接" title="为什么工具结果在下一轮很重要？的直接链接" translate="no">​</a></h3>
+<p>因为模型 API 没有环境感知，必须通过结果获得行动后的新观察。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="一次用户提问是不是只调用一次模型">一次用户提问是不是只调用一次模型？<a href="#一次用户提问是不是只调用一次模型" class="hash-link" aria-label="一次用户提问是不是只调用一次模型？的直接链接" title="一次用户提问是不是只调用一次模型？的直接链接" translate="no">​</a></h3>
+<p>通常不是。每次工具反馈、恢复或结束检查都可能触发新的模型请求。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="thinking-中写的动作会自动执行吗">Thinking 中写的动作会自动执行吗？<a href="#thinking-中写的动作会自动执行吗" class="hash-link" aria-label="Thinking 中写的动作会自动执行吗？的直接链接" title="Thinking 中写的动作会自动执行吗？的直接链接" translate="no">​</a></h3>
+<p>不会。只有正式工具请求通过权限后才会产生副作用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="恢复会话是不是恢复同一个模型进程">恢复会话是不是恢复同一个模型进程？<a href="#恢复会话是不是恢复同一个模型进程" class="hash-link" aria-label="恢复会话是不是恢复同一个模型进程？的直接链接" title="恢复会话是不是恢复同一个模型进程？的直接链接" translate="no">​</a></h3>
+<p>不是。它是读取记录、修复状态、重新组装上下文，再调用模型。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="权限允许是不是代表绝对安全">权限允许是不是代表绝对安全？<a href="#权限允许是不是代表绝对安全" class="hash-link" aria-label="权限允许是不是代表绝对安全？的直接链接" title="权限允许是不是代表绝对安全？的直接链接" translate="no">​</a></h3>
+<p>不是。权限、沙箱、工具实现和外部服务信任是不同层次。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="mcp-工具和内置工具的-agent-原理相同吗">MCP 工具和内置工具的 Agent 原理相同吗？<a href="#mcp-工具和内置工具的-agent-原理相同吗" class="hash-link" aria-label="MCP 工具和内置工具的 Agent 原理相同吗？的直接链接" title="MCP 工具和内置工具的 Agent 原理相同吗？的直接链接" translate="no">​</a></h3>
+<p>基本相同，都是“描述能力、生成请求、宿主执行、返回结果”；MCP 额外引入远程服务信任边界。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="skill-是不是一种超级权限">Skill 是不是一种超级权限？<a href="#skill-是不是一种超级权限" class="hash-link" aria-label="Skill 是不是一种超级权限？的直接链接" title="Skill 是不是一种超级权限？的直接链接" translate="no">​</a></h3>
+<p>不是。Skill 主要扩展模型的说明和流程，实际动作仍受工具权限控制。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="agent-为什么能连续做很多步">Agent 为什么能连续做很多步？<a href="#agent-为什么能连续做很多步" class="hash-link" aria-label="Agent 为什么能连续做很多步？的直接链接" title="Agent 为什么能连续做很多步？的直接链接" translate="no">​</a></h3>
+<p>因为外层状态机不断把上一步结果加入下一次模型请求，而不是因为模型在后台一直思考。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="25-补充答疑信息流mcp-与工具选择">25. 补充答疑：信息流、MCP 与工具选择<a href="#25-补充答疑信息流mcp-与工具选择" class="hash-link" aria-label="25. 补充答疑：信息流、MCP 与工具选择的直接链接" title="25. 补充答疑：信息流、MCP 与工具选择的直接链接" translate="no">​</a></h2>
+<p>这一节集中回答阅读本文时容易混淆的几个问题。它们实际上围绕三条边界：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 与模型的边界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具暴露与工具调用的边界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">会话存储与模型上下文的边界</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="251-prompt-到-agent-再到模型信息怎样流转">25.1 Prompt 到 Agent 再到模型，信息怎样流转<a href="#251-prompt-到-agent-再到模型信息怎样流转" class="hash-link" aria-label="25.1 Prompt 到 Agent 再到模型，信息怎样流转的直接链接" title="25.1 Prompt 到 Agent 再到模型，信息怎样流转的直接链接" translate="no">​</a></h3>
+<p>首先需要修正“Prompt → Agent → 模型”这个说法。</p>
+<p>Agent 不是夹在用户和模型之间的另一个智能实体。这里所说的 Agent，是由 Claude Code 宿主程序、Claude 模型、工具和反馈循环共同组成的系统。</p>
+<p>更准确的关系是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">用户</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 接收和整理信息</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude 模型作出决策</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 执行决策中的工具请求</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 执行结果再次交给模型</span><br></div></code></pre></div></div>
+<p>完整时序如下：</p>
+<!-- -->
+<p>一次模型 API 请求中通常包含：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">系统行为说明</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 项目专用指令</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 当前用户 Prompt</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 经过选择或压缩的历史消息</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具调用和工具结果</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ IDE、文件变化等附加信息</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 本轮工具的名称、描述和参数 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 模型、Thinking 和输出配置</span><br></div></code></pre></div></div>
+<p>工具 Schema 通常位于 API 请求专门的工具字段中，而不是伪装成普通用户聊天消息，但它同样会消耗模型上下文。</p>
+<p>某些本地命令和 Slash Command 可以由 Claude Code 直接处理，因此并非每次用户输入都会到达模型。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="252-mcp-调用是否属于工具调用">25.2 MCP 调用是否属于工具调用<a href="#252-mcp-调用是否属于工具调用" class="hash-link" aria-label="25.2 MCP 调用是否属于工具调用的直接链接" title="25.2 MCP 调用是否属于工具调用的直接链接" translate="no">​</a></h3>
+<p>如果调用的是 MCP Server 提供的 Tool，那么它属于工具调用。</p>
+<p>从模型角度看，内置工具和 MCP 工具遵循同一种协议：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">内置工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型生成 tool_use</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 在本地执行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 返回 tool_result</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">MCP 工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  模型生成 tool_use</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 向 MCP Server 发送 tools/call</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 返回 tool_result</span><br></div></code></pre></div></div>
+<p>主要区别是执行实现所在的位置：</p>
+<table><thead><tr><th>类型</th><th>工具实现在哪里</th></tr></thead><tbody><tr><td>内置工具</td><td>Claude Code 本地程序中</td></tr><tr><td>MCP 工具</td><td>外部 MCP Server 中</td></tr></tbody></table>
+<p>无论实现在哪里，模型都不能直接执行它。模型只能生成结构化调用请求，Claude Code 仍然负责权限检查、调用和结果回灌。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="253-mcp-resource-是什么">25.3 MCP Resource 是什么<a href="#253-mcp-resource-是什么" class="hash-link" aria-label="25.3 MCP Resource 是什么的直接链接" title="25.3 MCP Resource 是什么的直接链接" translate="no">​</a></h3>
+<p>MCP Resource 可以理解为 MCP Server 提供的“可读取资料”。它偏向数据，而 Tool 偏向动作。</p>
+<p>一个 Resource 通常包含：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">URI</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 名称</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 描述</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ MIME 类型</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 可以读取的文本或二进制内容</span><br></div></code></pre></div></div>
+<p>例如：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">docs://api/authentication</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">database://schema/users</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">logs://payment-service/latest</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">config://production/features</span><br></div></code></pre></div></div>
+<p>MCP Client 一般先列出资源，再根据 URI 读取：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">resources/list</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 查看 MCP Server 提供哪些资源</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">resources/read</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 读取指定 URI 的内容</span><br></div></code></pre></div></div>
+<p>Resource、Tool、Prompt 和 Root 的区别如下：</p>
+<table><thead><tr><th>MCP 概念</th><th>主要含义</th><th>示例</th></tr></thead><tbody><tr><td>Resource</td><td>Server 提供的可读取数据</td><td>文档、数据库结构、日志</td></tr><tr><td>Tool</td><td>Server 提供的可执行动作</td><td>查询订单、创建 Issue、发送消息</td></tr><tr><td>Prompt</td><td>可复用的提示模板</td><td>代码审查模板、故障分析模板</td></tr><tr><td>Root</td><td>Client 告诉 Server 可以在哪些范围工作</td><td>一个允许访问的项目目录</td></tr></tbody></table>
+<p>Resource 通常不会因为 MCP Server 已连接就自动把全部内容塞进模型上下文。更常见的过程是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 获得 Resource 列表</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 用户或模型决定读取某个 Resource</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 请求 MCP Server</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Resource 内容成为工具结果</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 内容进入下一次模型请求</span><br></div></code></pre></div></div>
+<p>在 Claude Code 中，列出和读取 MCP Resource 本身可以被包装成内置工具，因此模型最终仍能通过工具协议访问 Resource。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="254-谁从许多工具中选出特定工具">25.4 谁从许多工具中选出特定工具<a href="#254-谁从许多工具中选出特定工具" class="hash-link" aria-label="25.4 谁从许多工具中选出特定工具的直接链接" title="25.4 谁从许多工具中选出特定工具的直接链接" translate="no">​</a></h3>
+<p>“Agent 选择工具”实际上包含两次性质完全不同的选择。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="第一次claude-code-做资格筛选">第一次：Claude Code 做资格筛选<a href="#第一次claude-code-做资格筛选" class="hash-link" aria-label="第一次：Claude Code 做资格筛选的直接链接" title="第一次：Claude Code 做资格筛选的直接链接" translate="no">​</a></h4>
+<p>Claude Code 判断哪些工具有资格成为候选工具，例如：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">MCP Server 是否已经连接</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具功能是否启用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">当前平台和模型是否支持</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">当前运行模式是否允许</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">当前 Agent 或子 Agent 是否有权使用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具是否被明确的 deny 规则整体禁止</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">MCP Server 是否已经获得配置和连接许可</span><br></div></code></pre></div></div>
+<p>这一步回答的是：</p>
+<blockquote>
+<p>哪些工具可以进入本轮候选集合？</p>
+</blockquote>
+<p>它通常不回答：</p>
+<blockquote>
+<p>当前用户的问题最适合哪一个工具？</p>
+</blockquote>
+<p>例如一百个已安装工具，经过连接状态、运行模式和策略筛选后，可能剩下五十个候选工具。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="第二次模型做语义选择">第二次：模型做语义选择<a href="#第二次模型做语义选择" class="hash-link" aria-label="第二次：模型做语义选择的直接链接" title="第二次：模型做语义选择的直接链接" translate="no">​</a></h4>
+<p>模型根据以下信息决定当前是否需要某个工具：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">用户目标</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 当前会话上下文</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具名称</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具描述</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具参数 Schema</span><br></div></code></pre></div></div>
+<p>模型负责生成：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">工具名称</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具调用 ID</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 具体参数</span><br></div></code></pre></div></div>
+<p>Claude Code 随后再次进行权限检查，因此“模型选择了工具”不等于“工具一定会执行”。</p>
+<p>可以把职责概括为：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 决定哪些工具有资格被考虑</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型决定当前任务想使用哪个工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 决定这次具体调用能否执行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具实现或 MCP Server 负责真正执行</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="255-候选工具会不会被一股脑提供给模型">25.5 候选工具会不会被一股脑提供给模型<a href="#255-候选工具会不会被一股脑提供给模型" class="hash-link" aria-label="25.5 候选工具会不会被一股脑提供给模型的直接链接" title="25.5 候选工具会不会被一股脑提供给模型的直接链接" translate="no">​</a></h3>
+<p>需要区分标准加载和延迟加载两种模式。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="标准加载">标准加载<a href="#标准加载" class="hash-link" aria-label="标准加载的直接链接" title="标准加载的直接链接" translate="no">​</a></h4>
+<p>当候选工具不多、当前模型或 API Provider 不支持延迟工具协议，或者 Tool Search 没有启用时，Claude Code 可以把筛选后工具的完整 Schema 一起提供给模型。</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Read 完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">Edit 完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">Bash 完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">GitHub 查询工具完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">Slack 发送工具完整 Schema</span><br></div></code></pre></div></div>
+<p>所以准确地说：</p>
+<blockquote>
+<p>在标准加载模式下，经过资格筛选的工具确实可能被一次性全部发送给模型。</p>
+</blockquote>
+<p>这不等于模型会调用全部工具。模型仍会根据任务选择零个、一个或多个工具。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="tool-search-延迟加载">Tool Search 延迟加载<a href="#tool-search-延迟加载" class="hash-link" aria-label="Tool Search 延迟加载的直接链接" title="Tool Search 延迟加载的直接链接" translate="no">​</a></h4>
+<p>当 MCP 工具很多时，发送全部完整 Schema 会占用大量 token，也会增加模型选错工具的概率。</p>
+<p>这里必须先明确 Tool Search 的归属：</p>
+<blockquote>
+<p><code>ToolSearch</code> 是 Claude Code 实现并注册的内置工具，不是 Claude 模型内部自带的搜索功能，也不是 MCP Server 提供的工具。</p>
+</blockquote>
+<p>模型会收到 <code>ToolSearch</code> 的工具 Schema，因此能够像调用 <code>Read</code> 一样输出对它的 <code>tool_use</code>。真正维护候选工具池、执行关键词匹配并返回工具引用的是 Claude Code。</p>
+<p>延迟加载还要求当前模型和 API Provider 支持 <code>defer_loading</code>、<code>tool_reference</code> 等协议能力。协议支持使模型能够使用搜索结果，但不代表搜索算法运行在模型内部。</p>
+<table><thead><tr><th>部分</th><th>负责者</th></tr></thead><tbody><tr><td><code>ToolSearch</code> 的实现</td><td>Claude Code</td></tr><tr><td>候选工具池和搜索索引</td><td>Claude Code</td></tr><tr><td>决定何时搜索并生成搜索词</td><td>Claude 模型</td></tr><tr><td>延迟工具和工具引用协议</td><td>模型 API 与 Provider 必须支持</td></tr><tr><td>MCP 工具的原始定义</td><td>MCP Server</td></tr></tbody></table>
+<p>此时 Claude Code 可以只提供：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">核心工具的完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ ToolSearch 的完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 延迟工具的名称列表</span><br></div></code></pre></div></div>
+<p>延迟工具在完整 Schema 被加载前不能正式调用。</p>
+<p>假设用户说：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">把测试结果发送到 Slack。</span><br></div></code></pre></div></div>
+<p>过程可能是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">1. 模型看到用户目标和延迟工具名称</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">2. 模型判断需要 Slack 发送能力</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">3. 模型输出对 Claude Code 内置 ToolSearch 的调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">   query = &quot;slack send message&quot;</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">4. Claude Code 执行 ToolSearch，在候选工具池中搜索</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">5. Claude Code 返回 mcp__slack__send_message 的工具引用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">6. 下一次模型请求加入该工具的完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">7. 模型生成正式的 mcp__slack__send_message 调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">8. Claude Code 检查权限并请求 MCP Server 执行</span><br></div></code></pre></div></div>
+<p>流程可以概括为：</p>
+<!-- -->
+<p>因此，Tool Search 搜索的是 Claude Code 已经掌握的候选工具池，不是互联网。模型负责请求搜索，Claude Code 负责真正搜索。</p>
+<p>Tool Search 中的职责仍然是分开的：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型根据任务生成搜索词</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 根据名称、描述和搜索提示匹配工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">模型看到完整 Schema 后决定是否正式调用</span><br></div></code></pre></div></div>
+<p>当前实现的搜索主要是工具名称、描述和提示词匹配，不是另一个隐藏模型先完整理解用户任务再替主模型选择工具。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="256-mcp-工具-schema-在整个过程中做什么">25.6 MCP 工具 Schema 在整个过程中做什么<a href="#256-mcp-工具-schema-在整个过程中做什么" class="hash-link" aria-label="25.6 MCP 工具 Schema 在整个过程中做什么的直接链接" title="25.6 MCP 工具 Schema 在整个过程中做什么的直接链接" translate="no">​</a></h3>
+<p>一个 MCP 工具定义通常类似：</p>
+<div class="language-json codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-json codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;name&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;get_order&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;description&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;根据订单编号查询订单&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;inputSchema&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;type&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;object&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;properties&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">      </span><span class="token property" style="color:#36acaa">&quot;order_id&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token property" style="color:#36acaa">&quot;type&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;string&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">      </span><span class="token punctuation" style="color:#393A34">}</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;required&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">&quot;order_id&quot;</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token punctuation" style="color:#393A34">}</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">}</span><br></div></code></pre></div></div>
+<p>三个部分分别回答：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">name</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 调用哪个工具</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">description</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 这个工具适合解决什么问题</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">inputSchema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 调用这个工具需要哪些参数</span><br></div></code></pre></div></div>
+<p>模型看到这个定义后，可能生成：</p>
+<div class="language-json codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-json codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;type&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;tool_use&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;name&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;mcp__orders__get_order&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token property" style="color:#36acaa">&quot;input&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token property" style="color:#36acaa">&quot;order_id&quot;</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;A100&quot;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token punctuation" style="color:#393A34">}</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">}</span><br></div></code></pre></div></div>
+<p>Schema 是模型与工具之间的调用契约，不是工具实现本身。</p>
+<p>“Schema 不符合”可能表示三种不同情况。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="schema-不符合-mcp-协议格式">Schema 不符合 MCP 协议格式<a href="#schema-不符合-mcp-协议格式" class="hash-link" aria-label="Schema 不符合 MCP 协议格式的直接链接" title="Schema 不符合 MCP 协议格式的直接链接" translate="no">​</a></h4>
+<p>MCP 要求工具输入 Schema 的根类型是对象。如果 MCP Server 返回的工具列表不能通过 MCP 协议校验，Claude Code 就无法正常加载这批工具。</p>
+<p>在当前源码快照中，工具列表作为一个整体接受协议校验。校验失败后，这次获取会被视为失败并返回空工具列表。因此结果未必是只忽略一个错误工具，也可能是该 MCP Server 的整批工具都没有进入候选工具池。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="schema-合法但与当前任务无关">Schema 合法，但与当前任务无关<a href="#schema-合法但与当前任务无关" class="hash-link" aria-label="Schema 合法，但与当前任务无关的直接链接" title="Schema 合法，但与当前任务无关的直接链接" translate="no">​</a></h4>
+<p>这不是 Schema 错误。</p>
+<p>例如用户要求修改 CSS，而候选工具中存在订单查询工具。在标准加载模式中，它仍可能被提供给模型，只是模型通常不会调用它。在延迟加载模式中，模型通常不会搜索或加载它的完整 Schema。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Pa9U" id="模型生成的参数不符合-schema">模型生成的参数不符合 Schema<a href="#模型生成的参数不符合-schema" class="hash-link" aria-label="模型生成的参数不符合 Schema的直接链接" title="模型生成的参数不符合 Schema的直接链接" translate="no">​</a></h4>
+<p>Schema 会指导模型生成参数，但不能假设模型永远不会出错。</p>
+<p>对于 MCP 工具，MCP Server 仍然应该校验实际收到的参数。如果参数不合法，Server 应返回错误：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型生成错误参数</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → MCP Server 拒绝调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 错误作为 tool_result 返回</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 模型在下一轮修正参数</span><br></div></code></pre></div></div>
+<p>不能因为前面已经存在模型和 Claude Code，就省略 MCP Server 自己的输入校验。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="257-上下文窗口限制的是-api-还是模型">25.7 上下文窗口限制的是 API 还是模型<a href="#257-上下文窗口限制的是-api-还是模型" class="hash-link" aria-label="25.7 上下文窗口限制的是 API 还是模型的直接链接" title="25.7 上下文窗口限制的是 API 还是模型的直接链接" translate="no">​</a></h3>
+<p>这两个说法是同一限制的两个角度：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型能力角度</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 模型一次只能处理有限数量的 token</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">API 接口角度</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → API 对单次请求实施这个模型限制</span><br></div></code></pre></div></div>
+<p>上下文窗口可能包含：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">系统指令</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 项目说明</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 对话历史</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 工具调用和工具结果</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 文件内容</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 图片等附件</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">+ 为模型输出预留的空间</span><br></div></code></pre></div></div>
+<p>因此，限制的 不是用户 Prompt 一个字段，而是模型这一次推理需要处理的整体信息。</p>
+<p>还要区分：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 可以在磁盘上保存很多会话记录</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  ≠ 模型一次可以看到全部记录</span><br></div></code></pre></div></div>
+<p>会话过长时，Claude Code 必须选择、删除、缩减或压缩历史，再构造下一次 API 请求。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="258-为什么把重要约束写进项目说明测试或代码">25.8 为什么把重要约束写进项目说明、测试或代码<a href="#258-为什么把重要约束写进项目说明测试或代码" class="hash-link" aria-label="25.8 为什么把重要约束写进项目说明、测试或代码的直接链接" title="25.8 为什么把重要约束写进项目说明、测试或代码的直接链接" translate="no">​</a></h3>
+<p>主要目的不只是方便人查看，而是把容易从对话中丢失的约束，变成持久且可以重新发现或自动验证的项目事实。</p>
+<p>不同载体的作用不同：</p>
+<table><thead><tr><th>载体</th><th>主要作用</th></tr></thead><tbody><tr><td>专用项目指令</td><td>在之后的任务中重新告诉模型规则</td></tr><tr><td>普通文档</td><td>帮助人和 Agent 理解背景，但不一定自动加载</td></tr><tr><td>测试</td><td>自动证明实现是否违反约束</td></tr><tr><td>类型、Schema 和代码检查</td><td>从实现层面限制非法状态</td></tr></tbody></table>
+<p>例如：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">约束只在早期聊天中出现</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 可能在上下文压缩时丢失</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">约束写进项目指令</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 后续会话可以重新加载</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">约束写成测试</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 即使模型忘记，测试失败也会重新暴露问题</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">约束写进类型或 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 某些错误实现直接无法通过检查</span><br></div></code></pre></div></div>
+<p>因此大致可以理解为：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">聊天中的约束是临时工作记忆</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">项目说明是持久提醒</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">测试和代码约束是可执行规则</span><br></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="259-thinking-内容块的作用">25.9 Thinking 内容块的作用<a href="#259-thinking-内容块的作用" class="hash-link" aria-label="25.9 Thinking 内容块的作用的直接链接" title="25.9 Thinking 内容块的作用的直接链接" translate="no">​</a></h3>
+<p>Thinking 的首要作用不是在界面上制造参与感，而是让支持扩展思考的模型在生成最终回答或工具调用之前，使用额外推理预算处理复杂问题。</p>
+<p>它可以帮助模型：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">分析复杂代码关系</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">比较多个解决方案</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">规划工具使用顺序</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">根据工具错误重新判断</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">在输出前检查一致性</span><br></div></code></pre></div></div>
+<p>从 API 协议角度，不同内容块的责任是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">thinking</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 模型推理过程中的内容</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">text</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 面向用户的回答</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">tool_use</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 可以被宿主程序解析和审查的动作提案</span><br></div></code></pre></div></div>
+<p>界面可以显示、折叠、概括或隐藏 Thinking，但这只是展示层功能。用户看到的内容也未必是完整原始推理，可能是摘要、过滤内容或 redacted thinking。</p>
+<p>Thinking 本身不能触发真实操作。即使 Thinking 中出现“读取文件”或“删除文件”，只有正式的 <code>tool_use</code> 通过权限检查后才会执行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="2510-流式响应中何时开始执行工具">25.10 流式响应中何时开始执行工具<a href="#2510-流式响应中何时开始执行工具" class="hash-link" aria-label="25.10 流式响应中何时开始执行工具的直接链接" title="25.10 流式响应中何时开始执行工具的直接链接" translate="no">​</a></h3>
+<p>在流式工具执行开启时，Claude Code 不必等待整条模型回复结束，但也不能刚  看到工具名称就执行。</p>
+<p>工具参数可能分成多个片段到达：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">tool_use 内容块开始</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 工具名：Read</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 参数片段：{&quot;pa</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 参数片段：th&quot;:&quot;src/</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 参数片段：app.ts&quot;}</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → tool_use 内容块结束</span><br></div></code></pre></div></div>
+<p>前面的半截 JSON 不能解析，也不能安全执行。</p>
+<p>只有工具调用块完整后，Claude Code 才能确定：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">工具名称</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具调用 ID</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">完整参数 JSON</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">内容块已经结束</span><br></div></code></pre></div></div>
+<p>之后才进入：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">参数解析</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Hook</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 权限检查</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 并发安全调度</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 真正执行工具</span><br></div></code></pre></div></div>
+<p>此时模型可能仍在生成后面的内容：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型继续流式输出</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">          与</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">已完成的工具调用块开始执行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">          同时发生</span><br></div></code></pre></div></div>
+<p>因此最准确的表述是：</p>
+<blockquote>
+<p>当流式工具执行开启，并且某个 <code>tool_use</code> 内容块已经完整接收后，Claude Code 可以在整条模型响应结束前启动该工具，但仍然必须先通过参数、Hook、权限和调度检查。</p>
+</blockquote>
+<p>如果工具参数仍不完整、需要等待用户授权、工具之间不能安全并发，或者流式工具执行没有开启，就不会立即执行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="2511-这一组问题的统一结论">25.11 这一组问题的统一结论<a href="#2511-这一组问题的统一结论" class="hash-link" aria-label="25.11 这一组问题的统一结论的直接链接" title="25.11 这一组问题的统一结论的直接链接" translate="no">​</a></h3>
+<p>可以用下面这张职责表结束这组问题：</p>
+<table><thead><tr><th>问题</th><th>主要负责者</th></tr></thead><tbody><tr><td>保存完整候选工具池</td><td>Claude Code</td></tr><tr><td>连接和获取 MCP 工具</td><td>Claude Code 与 MCP Server</td></tr><tr><td>判断工具是否有资格成为候选</td><td>Claude Code 的配置、模式和策略系统</td></tr><tr><td>判断任务语义上可能需要什么工具</td><td>Claude 模型</td></tr><tr><td>搜索延迟工具</td><td>模型生成查询，Claude Code 执行 Tool Search</td></tr><tr><td>定义工具需要什么参数</td><td>工具 Schema</td></tr><tr><td>生成本次工具参数</td><td>Claude 模型</td></tr><tr><td>判断具体调用是否允许</td><td>Claude Code 权限系统</td></tr><tr><td>验证 MCP 参数和执行逻辑</td><td>MCP Server</td></tr><tr><td>把执行结果交回模型</td><td>Claude Code</td></tr><tr><td>决定继续调用工具还是最终回答</td><td>Claude 模型与外层 Agent 状态机</td></tr></tbody></table>
+<p>最简化的总流程是：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">Claude Code 先筛选候选资格</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 模型根据任务选择能力</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 必要时使用 Tool Search 加载完整 Schema</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 模型提出正式工具调用</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 校验和授权</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → 本地工具或 MCP Server 执行</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  → Claude Code 把结果放回下一轮上下文</span><br></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="26-最终心智模型">26. 最终心智模型<a href="#26-最终心智模型" class="hash-link" aria-label="26. 最终心智模型的直接链接" title="26. 最终心智模型的直接链接" translate="no">​</a></h2>
+<p>理解 Claude Code 时，可以始终把它拆成下面六个问题：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">1. 模型这次实际看到了什么？</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">2. 模型提出了什么结构化动作？</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">3. 谁校验并授权了这个动作？</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">4. 动作在哪个环境中真正执行？</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">5. 执行结果怎样进入下一轮上下文？</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">6. 外层状态机为什么选择继续或停止？</span><br></div></code></pre></div></div>
+<p>只要这六个问题能够回答，大部分看似复杂的行为都能解释清楚。</p>
+<p>Claude Code 的本质不是“给语言模型加一个终端”，而是建立一套完整的控制系统：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型负责提出可能的下一步</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">上下文系统负责提供有限的当前世界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具协议负责表达可执行动作</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">权限系统负责划定信任边界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">执行器负责改变真实环境</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">反馈循环负责让模型根据结果继续修正</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">持久化和恢复负责跨时间维持任务连续性</span><br></div></code></pre></div></div>
+<p>真正让它成为 Agent 的，不是其中任何一个部件，而是这些部件形成了一个受控、可观察、可中断、可恢复的闭环。</p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-tags-row"><div class="col"><b>标签：</b><ul class="tags_p3iO padding--none margin-left--sm"><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/docs/tags/ai">AI</a></li><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/docs/tags/llm">LLM</a></li><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/docs/tags/agent">Agent</a></li><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/docs/tags/claude-code">Claude Code</a></li><li class="tag_gWfr"><a rel="tag" class="tag_mlKh tagRegular_XPTi" href="/blog/docs/tags/mcp">MCP</a></li></ul></div></div><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_cPl0"></div><div class="col lastUpdated_ap26"><span class="theme-last-updated">最后<!-- -->于 <b><time datetime="2026-08-31T13:27:46.000Z" itemprop="dateModified">2026年8月31日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/blog/docs/ai-agent-learning/"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">Agent学习</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/blog/docs/ai-agent-learning/build-agent-01-single-call"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">从零手写 Agent（一）：第一次用代码调用大模型</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_FduZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#1-最核心的结论" class="table-of-contents__link toc-highlight">1. 最核心的结论</a></li><li><a href="#2-系统中的四个角色" class="table-of-contents__link toc-highlight">2. 系统中的四个角色</a><ul><li><a href="#21-语言模型决策者不是  执行者" class="table-of-contents__link toc-highlight">2.1 语言模型：决策者，不是执行者</a></li><li><a href="#22-宿主程序agent-的控制器" class="table-of-contents__link toc-highlight">2.2 宿主程序：Agent 的控制器</a></li><li><a href="#23-工具模型与真实世界之间的动作接口" class="table-of-contents__link toc-highlight">2.3 工具：模型与真实世界之间的动作接口</a></li><li><a href="#24-用户和策略最终信任边界" class="table-of-contents__link toc-highlight">2.4 用户和策略：最终信任边界</a></li></ul></li><li><a href="#3-一次用户请求为什么会触发多次模型调用" class="table-of-contents__link toc-highlight">3. 一次用户请求为什么会触发多次模型调用</a></li><li><a href="#4-工具调用为什么能够工作" class="table-of-contents__link toc-highlight">4. 工具调用为什么能够工作</a><ul><li><a href="#41-工具先被描述成一种结构化语言" class="table-of-contents__link toc-highlight">4.1 工具先被描述成一种结构化语言</a></li><li><a href="#42-宿主程序把动作提案变成真实操作" class="table-of-contents__link toc-highlight">4.2 宿主程序把动作提案变成真实操作</a></li><li><a href="#43-工具结果为什么还要交回模型" class="table-of-contents__link toc-highlight">4.3 工具结果为什么还要交回模型</a></li><li><a href="#44-工具失败也具有信息价值" class="table-of-contents__link toc-highlight">4.4 工具失败也具有信息价值</a></li><li><a href="#45-为什么工具调用和结果必须配对" class="table-of-contents__link toc-highlight">4.5 为什么工具调用和结果必须配对</a></li></ul></li><li><a href="#5-agent-循环是一台状态机" class="table-of-contents__link toc-highlight">5. Agent 循环是一台状态机</a></li><li><a href="#6-上下文才是模型的当前世界" class="table-of-contents__link toc-highlight">6. 上下文才是模型的“当前世界”</a><ul><li><a href="#61-模型没有直接访问整 个会话和项目" class="table-of-contents__link toc-highlight">6.1 模型没有直接访问整个会话和项目</a></li><li><a href="#62-四种状态不要混为一谈" class="table-of-contents__link toc-highlight">6.2 四种状态不要混为一谈</a></li><li><a href="#63-每次请求都要重新组装上下文" class="table-of-contents__link toc-highlight">6.3 每次请求都要重新组装上下文</a></li></ul></li><li><a href="#7-claude-code-所谓的记忆是什么" class="table-of-contents__link toc-highlight">7. Claude Code 所谓的“记忆”是什么</a><ul><li><a href="#71-模型本身不保存跨请求记忆" class="table-of-contents__link toc-highlight">7.1 模型本身不保存跨请求记忆</a></li><li><a href="#72-会话记录不等于模型记忆" class="table-of-contents__link toc-highlight">7.2 会话记录不等于模型记忆</a></li><li><a href="#73-压缩不是无损存储" class="table-of-contents__link toc-highlight">7.3 压缩不是无损存储</a></li></ul></li><li><a href="#8-thinking-是什么不是什么" class="table-of-contents__link toc-highlight">8. Thinking 是什么，不是什么</a><ul><li><a href="#81-thinking-是模型响应的一种内容块" class="table-of-contents__link toc-highlight">8.1 Thinking 是模型响应的一种内容块</a></li><li><a href="#82-thinking-不直接控制工具" class="table-of-contents__link toc-highlight">8.2 Thinking 不直接控制工具</a></li><li><a href="#83-thinking-不等于长期记忆" class="table-of-contents__link toc-highlight">8.3 Thinking 不等于长期记忆</a></li><li><a href="#84-thinking-也不是可信的安全依据" class="table-of-contents__link toc-highlight">8.4 Thinking 也不是可信的安全依据</a></li></ul></li><li><a href="#9-流式输出为什么不仅是逐字打印" class="table-of-contents__link toc-highlight">9. 流式输出为什么不仅是逐字打印</a><ul><li><a href="#91-流里有两类信息" class="table-of-contents__link toc-highlight">9.1 流里有两类信息</a></li><li><a href="#92-临时显示与正式消息分离" class="table-of-contents__link toc-highlight">9.2 临时显示与正式消息分离</a></li><li><a href="#93-为什么工具可以在整条回复结束前开始执行" class="table-of-contents__link toc-highlight">9.3 为什么工具可以在整条回复结束前开始执行</a></li></ul></li><li><a href="#10-工具为什么有时并发有时串行" class="table-of-contents__link toc-highlight">10. 工具为什么有时并发、有时串行</a></li><li><a href="#11-权限安全和沙箱是三件不同的事" class="table-of-contents__link toc-highlight">11. 权限、安全和沙箱是三件不同的事</a><ul><li><a href="#111-能力授权隔离" class="table-of-contents__link toc-highlight">11.1 能力、授权、隔离</a></li><li><a href="#112-权限是分层决策不是一个布尔开关" class="table-of-contents__link toc-highlight">11.2 权限是分层决策，不是一个布尔开关</a></li><li><a href="#113-为什么-deny-必须比普通-allow-更强" class="table-of-contents__link toc-highlight">11.3 为什么 deny 必须比普通 allow 更强</a></li><li><a href="#114-权限模式不是沙箱模式" class="table-of-contents__link toc-highlight">11.4 权限模式不是沙箱模式</a></li><li><a href="#115-为什么无人值守模式通常更保守" class="table-of-contents__link toc-highlight">11.5 为什么无人值守模式通常更保守</a></li></ul></li><li><a href="#12-文件和-shell-为什么需要特殊权限逻辑" class="table-of-contents__link toc-highlight">12. 文件和 Shell 为什么需要特殊权限逻辑</a><ul><li><a href="#121-文件路径不是普通字符串" class="table-of-contents__link toc-highlight">12.1 文件路径不是普通字符串</a></li><li><a href="#122-shell-命令也不是普通字符串" class="table-of-contents__link toc-highlight">12.2 Shell 命令也不是普通字符串</a></li></ul></li><li><a href="#13-hook-的原理给-agent-循环插入外部治理逻辑" class="table-of-contents__link toc-highlight">13. Hook 的原理：给 Agent 循环插入外部治理逻辑</a><ul><li><a href="#131-hook-allow-不是绝对授权" class="table-of-contents__link toc-highlight">13.1 Hook allow 不是绝对授权</a></li><li><a href="#132-stop-hook-为什么可以让模型继续" class="table-of-contents__link toc-highlight">13.2 Stop Hook 为什么可以让模型继续</a></li></ul></li><li><a href="#14-mcp-的本质把远程能力接入同一种工具协议" class="table-of-contents__link toc-highlight">14. MCP 的本质：把远程能力接入同一种工具协议</a></li><li><a href="#15-skill-的本质改变上下文不直接获得权限" class="table-of-contents__link toc-highlight">15. Skill 的本质：改变上下文，不直接获得权限</a></li><li><a href="#16-错误恢复为什么分很多层" class="table-of-contents__link toc-highlight">16. 错误恢复为什么分很多层</a><ul><li><a href="#161-网络或-api-重试" class="table-of-contents__link toc-highlight">16.1 网络或 API 重试</a></li><li><a href="#162-流式请求降级" class="table-of-contents__link toc-highlight">16.2 流式请求降级</a></li><li><a href="#163-agent-续轮" class="table-of-contents__link toc-highlight">16.3 Agent 续轮</a></li><li><a href="#164-上下文恢复" class="table-of-contents__link toc-highlight">16.4 上下文恢复</a></li><li><a href="#165-输出截断恢复" class="table-of-contents__link toc-highlight">16.5 输出截断恢复</a></li><li><a href="#166-权限和工具错误恢复" class="table-of-contents__link toc-highlight">16.6 权限和工具错误恢复</a></li></ul></li><li><a href="#17-中断为什么要贯穿整个系统" class="table-of-contents__link toc-highlight">17. 中断为什么要贯穿整个系统</a></li><li><a href="#18-agent-到底在什么时候停止" class="table-of-contents__link toc-highlight">18. Agent 到底在什么时候停止</a></li><li><a href="#19-会话恢复为什么不是唤醒同一个模型" class="table-of-contents__link toc-highlight">19. 会话恢复为什么不是“唤醒同一个模型”</a></li><li><a href="#20-交互模式无头模式和-sdk-的区别" class="table-of-contents__link toc-highlight">20. 交互模式、无头模式和 SDK 的区别</a></li><li><a href="#21-一个完整例子修复测试失败" class="table-of-contents__link toc-highlight">21. 一个完整例子：修复测试失败</a><ul><li><a href="#第一步构造初始世界" class="table-of-contents__link toc-highlight">第一步：构造初始世界</a></li><li><a href="#第二步模型提出观察动作" class="table-of-contents__link toc-highlight">第二步：模型提出观察动作</a></li><li><a href="#第三步环境反馈" class="table-of-contents__link toc-highlight">第三步：环境反馈</a></li><li><a href="#第四步模型请求更多信息" class="table-of-contents__link toc-highlight">第四步：模型请求更多信息</a></li><li><a href="#第五步模型提出修改" class="table-of-contents__link toc-highlight">第五步：模型提出修改</a></li><li><a href="#第六步验证" class="table-of-contents__link toc-highlight">第六步：验证</a></li><li><a href="#第七步完成判断" class="table-of-contents__link toc-highlight">第七步：完成判断</a></li></ul></li><li><a href="#22-为什么这种架构会表现出自主性" class="table-of-contents__link toc-highlight">22. 为什么这种架构会表现出“自主性”</a><ul><li><a href="#221-目标保持" class="table-of-contents__link toc-highlight">22.1 目标保持</a></li><li><a href="#222-环境反馈" class="table-of-contents__link toc-highlight">22.2 环境反馈</a></li><li><a href="#223-小步决策" class="table-of-contents__link toc-highlight">22.3 小步决策</a></li><li><a href="#224-错误可观察" class="table-of-contents__link toc-highlight">22.4 错误可观察</a></li><li><a href="#225-外层持续调度" class="table-of-contents__link toc-highlight">22.5 外层持续调度</a></li></ul></li><li><a href="#23-这套机制的根本限制" class="table-of-contents__link toc-highlight">23. 这套机制的根本限 制</a><ul><li><a href="#231-模型判断具有概率性" class="table-of-contents__link toc-highlight">23.1 模型判断具有概率性</a></li><li><a href="#232-上下文是有限且有损的" class="table-of-contents__link toc-highlight">23.2 上下文是有限且有损的</a></li><li><a href="#233-工具结果不一定可信" class="table-of-contents__link toc-highlight">23.3 工具结果不一定可信</a></li><li><a href="#234-权限只能控制已建模的边界" class="table-of-contents__link toc-highlight">23.4 权限只能控制已建模的边界</a></li><li><a href="#235-工具副作用未必可撤销" class="table-of-contents__link toc-highlight">23.5 工具副作用未必可撤销</a></li><li><a href="#236-最终文本不等于真实成功" class="table-of-contents__link toc-highlight">23.6 最终文本不等于真实成功</a></li></ul></li><li><a href="#24-用几个问题检验是否真正理解" class="table-of-contents__link toc-highlight">24. 用几个问题检验是否真正理解</a><ul><li><a href="#模型能直接运行命令吗" class="table-of-contents__link toc-highlight">模型能直接运行命令吗？</a></li><li><a href="#模型能看到完整仓库吗" class="table-of-contents__link toc-highlight">模型能看到完整仓库吗？</a></li><li><a href="#为什么工具结果在下一轮很重要" class="table-of-contents__link toc-highlight">为什么工具结果在下一轮很重要？</a></li><li><a href="#一次用户提问是不是只调用一次模型" class="table-of-contents__link toc-highlight">一次用户提问是不是只调用一次模型？</a></li><li><a href="#thinking-中写的动作会自动执行吗" class="table-of-contents__link toc-highlight">Thinking 中写的动作会自动执行吗？</a></li><li><a href="#恢复会话是不是恢复同一个模型进程" class="table-of-contents__link toc-highlight">恢复会话是不是恢复同一个模型进程？</a></li><li><a href="#权限允许是不是代表绝对安全" class="table-of-contents__link toc-highlight"> 权限允许是不是代表绝对安全？</a></li><li><a href="#mcp-工具和内置工具的-agent-原理相同吗" class="table-of-contents__link toc-highlight">MCP 工具和内置工具的 Agent 原理相同吗？</a></li><li><a href="#skill-是不是一种超级权限" class="table-of-contents__link toc-highlight">Skill 是不是一种超级权限？</a></li><li><a href="#agent-为什么能连续做很多步" class="table-of-contents__link toc-highlight">Agent 为什么能连续做很多步？</a></li></ul></li><li><a href="#25-补充答疑信息流mcp-与工具选择" class="table-of-contents__link toc-highlight">25. 补充答疑：信息流、MCP 与工具选择</a><ul><li><a href="#251-prompt-到-agent-再到模型信息怎样流转" class="table-of-contents__link toc-highlight">25.1 Prompt 到 Agent 再到模型，信息怎样流转</a></li><li><a href="#252-mcp-调用是否属于工具调用" class="table-of-contents__link toc-highlight">25.2 MCP 调用是否属于工具调用</a></li><li><a href="#253-mcp-resource-是什么" class="table-of-contents__link toc-highlight">25.3 MCP Resource 是什么</a></li><li><a href="#254-谁从许多工具中选出特定工具" class="table-of-contents__link toc-highlight">25.4 谁从许多工具中选出特定工具</a></li><li><a href="#255-候选工具会不会被一股脑提供给模型" class="table-of-contents__link toc-highlight">25.5 候选工具会不会被一股脑提供给模型</a></li><li><a href="#256-mcp-工具-schema-在整个过程中做什么" class="table-of-contents__link toc-highlight">25.6 MCP 工具 Schema 在整个过程中做什么</a></li><li><a href="#257-上下文窗口限制的是-api-还是模型" class="table-of-contents__link toc-highlight">25.7 上下文窗口限制的是 API 还是模型</a></li><li><a href="#258-为什么把重要约束写进项目说明测试或代码" class="table-of-contents__link toc-highlight">25.8 为什么把重要约束写进项目说明、测试或代码</a></li><li><a href="#259-thinking-内容块的作用" class="table-of-contents__link toc-highlight">25.9 Thinking 内容块的作用</a></li><li><a href="#2510-流式响应中何时开始执行工具" class="table-of-contents__link toc-highlight">25.10 流式响应中何时开始执行工具</a></li><li><a href="#2511-这一组问题的统一结论" class="table-of-contents__link toc-highlight">25.11 这一组问题的统一结论</a></li></ul></li><li><a href="#26-最终心智模型" class="table-of-contents__link toc-highlight">26. 最终心智模型</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Explore</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/blog/docs">全部文档</a></li><li class="footer__item"><a class="footer__link-item" href="/blog/docs/llm-learning/overview">AI 学习笔记</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Docusaurus<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://neovim.io/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Neovim<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://markmap.js.org/" target="_blank" rel="noopener noreferrer" class="footer__link-item">markmap<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_wmY5"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2023-2026 Kehan's Blog. Built with Docusaurus.</div></div></div></footer></div>
+</body>
+</html>
