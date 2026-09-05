@@ -1,0 +1,158 @@
+{
+  "postgres": {
+    "server_version": "16.2",
+    "transaction_isolation": "read committed",
+    "conflict": {
+      "session_id": 2,
+      "a_revision": 1,
+      "b_revision": 0,
+      "exception": "SessionRevisionConflict",
+      "stored_revision": 1,
+      "stored_content": "snapshot A"
+    },
+    "import": {
+      "commands": [
+        {
+          "command": "uv run python migrate.py",
+          "output": "[已执行 migration] 0001_create_sessions.sql\n"
+        },
+        {
+          "command": "uv run python -m sessions.migrate_json --source <fixture-directory> --dry-run",
+          "output": "[Session JSON 校验通过] 1 个文件\n"
+        },
+        {
+          "command": "uv run python -m sessions.migrate_json --source <fixture-directory> --apply",
+          "output": "[Session JSON 校验通过] 1 个文件\n[Session 导入完成] 1 条\n"
+        }
+      ],
+      "imported_id": 42,
+      "imported_revision": 0,
+      "next_created_id": 43
+    }
+  },
+  "unit_tests": {
+    "command": "uv run python -m unittest discover -s tests -v",
+    "exit_code": 0,
+    "postgres_tests": [
+      "test_crud_and_revision_conflict (test_postgres_session_service.PostgresSessionServiceTests.test_crud_and_revision_conflict) ... ok",
+      "test_json_import_preserves_existing_identity_high_water_mark (test_postgres_session_service.PostgresSessionServiceTests.test_json_import_preserves_existing_identity_high_water_mark) ... ok",
+      "test_json_import_preserves_id_and_advances_identity (test_postgres_session_service.PostgresSessionServiceTests.test_json_import_preserves_id_and_advances_identity) ... ok",
+      "test_migrations_are_idempotent (test_postgres_session_service.PostgresSessionServiceTests.test_migrations_are_idempotent) ... ok",
+      "test_pending_approval_and_encrypted_reasoning_round_trip (test_postgres_session_service.PostgresSessionServiceTests.test_pending_approval_and_encrypted_reasoning_round_trip) ... ok",
+      "test_schema_check_detects_missing_default (test_postgres_session_service.PostgresSessionServiceTests.test_schema_check_detects_missing_default) ... ok",
+      "test_service_reopen_keeps_data (test_postgres_session_service.PostgresSessionServiceTests.test_service_reopen_keeps_data) ... ok"
+    ],
+    "summary": "----------------------------------------------------------------------\nRan 75 tests in 1.307s\n\nOK\n"
+  },
+  "ui_snapshots": [
+    {
+      "label": "created",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 0,
+          "items": 1,
+          "pending": false
+        }
+      ],
+      "file_exists": false
+    },
+    {
+      "label": "text_streaming_before_completed",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 1,
+          "items": 2,
+          "pending": false
+        }
+      ],
+      "file_exists": false
+    },
+    {
+      "label": "text_completed",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 2,
+          "items": 3,
+          "pending": false
+        }
+      ],
+      "file_exists": false
+    },
+    {
+      "label": "approval_visible",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 4,
+          "items": 5,
+          "pending": true
+        }
+      ],
+      "file_exists": false
+    },
+    {
+      "label": "approval_after_reload",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 4,
+          "items": 5,
+          "pending": true
+        }
+      ],
+      "file_exists": false
+    },
+    {
+      "label": "approval_after_backend_restart",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 4,
+          "items": 5,
+          "pending": true
+        }
+      ],
+      "file_exists": false
+    },
+    {
+      "label": "continued_same_session_after_refresh",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 9,
+          "items": 9,
+          "pending": false
+        }
+      ],
+      "file_exists": true
+    },
+    {
+      "label": "automatic_tool_before_final_response",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 11,
+          "items": 12,
+          "pending": false
+        }
+      ],
+      "file_exists": true
+    },
+    {
+      "label": "automatic_tool_completed",
+      "rows": [
+        {
+          "id": 1,
+          "revision": 12,
+          "items": 13,
+          "pending": false
+        }
+      ],
+      "file_exists": true
+    }
+  ],
+  "ui_issue": "Restored approval: backend persisted tool output and final response (revision=7, pending=NULL), but React emitted Duplicate key toolCallId-call_2 in useResources; page did not render final response. Refreshing then continuing same Session succeeded (revision=9).\n"
+}
