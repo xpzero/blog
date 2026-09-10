@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/"
                        xmlns:moz="http://www.mozilla.org/2006/browser/search/">
-  <ShortName>What are you thinking about?</ShortName>
-  <Description>Search What are you thinking about?</Description>
+  <ShortName>柯寒的备忘录</ShortName>
+  <Description>Search 柯寒的备忘录</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Image width="16" height="16" type="image/x-icon">https://xpzero.github.io/blog/img/favicon.ico</Image>
   <Url type="text/html" method="get" template="https://xpzero.github.io/blog/search?q={searchTerms}"/>
