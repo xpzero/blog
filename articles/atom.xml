@@ -13,7 +13,7 @@
         <id>https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection</id>
         <link href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection"/>
         <updated>2026-09-13T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[一个基础 Agent 跑起来了，我却发现自己不想再写确定性的代码。这段时间「古法编程」的讨论刷屏，读完各方的争吵，我重新想了一遍：AI 辅助的工作模式下，人应该把控什么。]]></summary>
+        <summary type="html"><![CDATA[一个基础 Agent 跑起来了，我却发现自己不想再写确定性的代码。重新想了一遍这个问题：AI 辅助的工作模式下，人应该把控什么。]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="从零认识一个基础-agent">从零认识一个基础 Agent<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%BB%8E%E9%9B%B6%E8%AE%A4%E8%AF%86%E4%B8%80%E4%B8%AA%E5%9F%BA%E7%A1%80-agent" class="hash-link" aria-label="从零认识一个基础 Agent的直接链接" title="从零认识一个基础 Agent的直接链接" translate="no">​</a></h2>
 <p>「从零认识 Agent」系列走到第十一篇。demo 已经有个基础 Agent 的样子：会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话存在本地。回看这套代码，AI 写了大部分实现，我负责拆解每一步做什么、检查它写得对不对。</p>
 <p>写到这里，我发现自己出了点问题。或者说，发现了一点变化。</p>
@@ -24,17 +24,12 @@
 <p>一个来源很模糊：这样做是不是"正道"？毕业这些年攒下来的手艺，交给模型代劳，我是在升级工作方式，还是在自废武功？</p>
 <p>另一个来源很具体：LLM API 是无状态的。每次对话，它都不记得上一次的实现。一个长期项目，全靠 AI 写，意味着每个功能都是"失忆的工程师"接手别人的代码再往下写。我对这个项目的掌控感在流失。代码在仓库里，但"我知道每一行为什么是这样"的那种踏实感没有了。</p>
 <p>更现实的问题是 review。AI 一次实现一个很大的需求，几百上千行变更，逐行审既痛苦又不切实际。审不完的代码，等于没审。可要是干脆不审，这个项目还算是我在维护的吗？</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="原来大家都在吵这件事">原来大家都在吵这件事<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E5%8E%9F%E6%9D%A5%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E5%90%B5%E8%BF%99%E4%BB%B6%E4%BA%8B" class="hash-link" aria-label="原来大家都在吵这件事的直接链接" title="原来大家都在吵这件事的直接链接" translate="no">​</a></h2>
-<p>带着这些疑问去网上冲浪，才发现"古法编程"这段时间正被吵得热闹。追了几个热帖和讨论串之后，我的总结是三句话。</p>
-<p>第一，手写代码作为默认工作方式，已经结束了。两边争论的起点都不是"要不要用 AI"，而是"已经离不开了"：有人坦白近半年没写过一行代码；有人认真讨论"三家 AI 服务同时宕机怎么办"，最高赞的回答是部署本地模型当降级方案。小红书上最火的一句调侃，"需求排期不会给古法编程的交付周期"，说的也是同一件事：这不是个人选择，是交付节奏替你选好了。</p>
-<p>第二，"古法"没有消失，是换了位置，退进了三个角落。AI 够不着的地方它还在：底层驱动、嵌入式、冷门 API，那里的从业者说 AI 会一本正经地编造不存在的函数，自己古法比例 100%。组织不把 AI 效率变成 KPI 的地方它还在：有公司仅仅因为"还在古法编程"就被打工人当成好去处，热评那句反话很精准——"牛马比 token 便宜"。争论最激烈的第三个位置是设计环节：有团队开会时现场手写伪代码，不求跑得通，只求把细节和坑提前定下来，然后交给 AI 实现。写代码正在从实现环节挪到设计环节，这是整场讨论里我认为最有信息量的一件事。</p>
-<p>第三，真正被焦虑的不是效率，是依赖和断层。担忧的人说，基本功会像汇编一样变成少数人的手艺，"但这也是高手与菜鸟的区别"；刻薄点的版本是，以后手写代码就是太极拳，主要用来修身养性。这些声音和我前面的自我怀疑是同一种东西：手艺还在，但它原来的位置没有了。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="重新想这个问题">重新想这个问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%87%8D%E6%96%B0%E6%83%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98" class="hash-link" aria-label="重新想这个问题的直接链接" title="重新想这个问题的直接链接" translate="no">​</a></h2>
 <p>后来我想，难受的可能不是"AI 在写代码"，而是我还在用旧标准要求新模式：逐行掌控。这套标准在亲手敲代码的阶段是美德的来源，在 AI 辅助时代变成了痛苦的来源。</p>
 <p>有意思的是，答案我其实已经在自己的项目里实践过了。</p>
 <p>demo-agent 的模型调用就是无状态的：<code>store=False</code>，服务端不保存任何上下文。我给它的补偿方案是自己在本地管理完整的 Items、做 Session、做 checkpoint。模型没有记忆，我就把记忆做在它外面。</p>
 <p>AI 辅助开发里我做的事是一样的。AGENTS.md 是给 AI 的项目规范，README 里 V1 到 V11 的演进记录是项目的历史记忆，每篇文章的验收表和测试清单定义了"什么算做对了"。项目记忆不在我脑子里，也不在模型脑子里，在仓库里。掌控感的挂点，从"我记得每一行代码"换成了"我维护这个项目的记忆和边界"。</p>
-<p>X 上那个开会写伪代码的帖子，说的其实是同一件事，只不过它发生在会议里，发生在我这里是第十一篇的权限设计：模型提出工具调用，人裁决 allow、ask、deny，批准后才执行。写的时候我把它当成 Agent 的安全设计，现在看，这就是 AI 辅助工作模式的雏形。我在自己的小项目里摸索出来的东西，别人在团队尺度上也在摸索。</p>
+<p>第十一篇的权限设计，其实就是这件事的缩影：模型提出工具调用，人裁决 allow、ask、deny，批准后才执行。写的时候我把它当成 Agent 的安全设计，现在看，这就是 AI 辅助工作模式的雏形。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="那人应该把控什么">那人应该把控什么<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%82%A3%E4%BA%BA%E5%BA%94%E8%AF%A5%E6%8A%8A%E6%8E%A7%E4%BB%80%E4%B9%88" class="hash-link" aria-label="那人应该把控什么的直接链接" title="那人应该把控什么的直接链接" translate="no">​</a></h2>
 <p>初步的答案，带着"或许"。</p>
 <p>问题的定义权和拆解权在人，这条没什么好犹豫的。拆错了，AI 执行得越好，错得越远。</p>
@@ -48,7 +43,6 @@
 <ul>
 <li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">系列：从零认识 Agent</a></li>
 <li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/build-agent-11-tool-approval">前文：给工具调用加上权限判断和用户审批</a></li>
-<li class="">小红书 / X 上关于「古法编程」的讨论（2026 年 8–9 月），文中引用的帖子搜索关键词「古法编程」即可找到；<a href="https://x.com/wwwgoubuli/status/1963404589824352550" target="_blank" rel="noopener noreferrer" class="">其中一条讨论"会议手写伪代码"的帖子</a></li>
 </ul>]]></content>
         <author>
             <name>柯寒</name>
