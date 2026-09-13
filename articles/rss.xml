@@ -22,7 +22,7 @@
 <p>最近实现新功能时，我越来越不想自己敲那些确定性的代码：循环的边界、参数的解析、异常的兜底。这些东西我完全会写，但 AI 一轮就能给出可用的实现，我再逐行敲一遍，感觉像在用手扶犁耕地。</p>
 <p>第一次把一个完整功能整体交给 AI 写的时候，我甚至有点愧疚，像在考试里作弊。后来次数多了，愧疚变成了别的东西：不安。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="不安来自哪里">不安来自哪里<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%B8%8D%E5%AE%89%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C" class="hash-link" aria-label="不安来自哪里的直接链接" title="不安来自哪里的直接链接" translate="no">​</a></h2>
-<p>一个来源很模糊：这样做是不是"正道"？十几年练出来的手艺，交给模型代劳，我是在升级工作方式，还是在自废武功？</p>
+<p>一个来源很模糊：这样做是不是"正道"？毕业这些年攒下来的手艺，交给模型代劳，我是在升级工作方式，还是在自废武功？</p>
 <p>另一个来源很具体：<strong>LLM API 是无状态的</strong>。每次对话，它都不记得上一次的实现。一个长期项目，全靠 AI 写，意味着每个功能都是"失忆的工程师"接手别人的代码再往下写。我对这个项目的掌控感在流失——代码在仓库里，但"我知道每一行为什么是这样"的那种踏实感没有了。</p>
 <p>更现实的问题是 review。如果 AI 一次实现了一个很大的需求，几百上千行变更，我逐行审代码既痛苦又不切实际。审不完的代码，等于没审。可要是干脆不审，那这个项目还算是我在维护的吗？</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="重新想这个问题">重新想这个问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%87%8D%E6%96%B0%E6%83%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98" class="hash-link" aria-label="重新想这个问题的直接链接" title="重新想这个问题的直接链接" translate="no">​</a></h2>
