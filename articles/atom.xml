@@ -15,7 +15,7 @@
         <updated>2026-09-13T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[一个基础 Agent 已经跑起来了，我却发现自己不想再写确定性的代码。这不是一篇关于懒惰的忏悔，而是重新想了一遍：AI 辅助的工作模式下，人应该把控什么。]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="从零手写到一个基础-agent">从零手写到一个基础 Agent<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%BB%8E%E9%9B%B6%E6%89%8B%E5%86%99%E5%88%B0%E4%B8%80%E4%B8%AA%E5%9F%BA%E7%A1%80-agent" class="hash-link" aria-label="从零手写到一个基础 Agent的直接链接" title="从零手写到一个基础 Agent的直接链接" translate="no">​</a></h2>
-<p>「从零手写 Agent」系列走到第十一篇。这个 demo 已经有了一个基础 Agent 的样子：它会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话保存在本地。它很小，但每一块都是我从一行 <code>client.responses.create()</code> 开始推出来的。</p>
+<p>「从零手写 Agent」系列走到第十一篇。这个 demo 已经有了一个基础 Agent 的样子：它会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话保存在本地。回看这套代码，AI 写了大部分的实现，我负责拆解每一步要做什么、检查它写得对不对。</p>
 <p>写到这里，我发现自己出了点问题——或者说，发现了一点变化。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="我开始不想写确定性代码了">我开始不想写确定性代码了<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E6%88%91%E5%BC%80%E5%A7%8B%E4%B8%8D%E6%83%B3%E5%86%99%E7%A1%AE%E5%AE%9A%E6%80%A7%E4%BB%A3%E7%A0%81%E4%BA%86" class="hash-link" aria-label="我开始不想写确定性代码了的直接链接" title="我开始不想写确定性代码了的直接链接" translate="no">​</a></h2>
 <p>最近实现新功能时，我越来越不想自己敲那些确定性的代码：循环的边界、参数的解析、异常的兜底。这些东西我完全会写，但 AI 一轮就能给出可用的实现，我再逐行敲一遍，感觉像在用手扶犁耕地。</p>
@@ -25,7 +25,7 @@
 <p>另一个来源很具体：<strong>LLM API 是无状态的</strong>。每次对话，它都不记得上一次的实现。一个长期项目，全靠 AI 写，意味着每个功能都是"失忆的工程师"接手别人的代码再往下写。我对这个项目的掌控感在流失——代码在仓库里，但"我知道每一行为什么是这样"的那种踏实感没有了。</p>
 <p>更现实的问题是 review。如果 AI 一次实现了一个很大的需求，几百上千行变更，我逐行审代码既痛苦又不切实际。审不完的代码，等于没审。可要是干脆不审，那这个项目还算是我在维护的吗？</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="重新想这个问题">重新想这个问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%87%8D%E6%96%B0%E6%83%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98" class="hash-link" aria-label="重新想这个问题的直接链接" title="重新想这个问题的直接链接" translate="no">​</a></h2>
-<p>后来我想，难受的可能不是"AI 在写代码"，而是我还在用旧标准要求新模式：<strong>逐行掌控</strong>。这套标准在手写时代是美德的来源，在 AI 辅助时代变成了痛苦的来源。</p>
+<p>后来我想，难受的可能不是"AI 在写代码"，而是我还在用旧标准要求新模式：<strong>逐行掌控</strong>。这套标准在亲手敲代码的阶段是美德的来源，在 AI 辅助时代变成了痛苦的来源。</p>
 <p>有意思的是，这个问题的答案，我其实已经在自己的项目里实践过了。</p>
 <p>demo-agent 的模型调用就是无状态的：<code>store=False</code>，服务端不保存任何上下文。我给它的补偿方案是自己在本地管理完整的 Items、做 Session、做 checkpoint——模型没有记忆，我就把记忆做在它外面。</p>
 <p>回头一看，我在 AI 辅助开发里做的其实是同一件事：AGENTS.md 是给 AI 的项目规范，README 里 V1 到 V11 的演进记录是项目的历史记忆，每篇文章的验收表和测试清单是"什么算做对了"的定义。**项目记忆不在我脑子里，也不在模型脑子里，在仓库里。**掌控感的挂点，从"我记得每一行代码"换成了"我维护着这个项目的记忆和边界"。</p>
