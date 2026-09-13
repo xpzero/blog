@@ -10,41 +10,24 @@
         <language>zh-CN</language>
         <copyright>Copyright © 2023-2026 Kehan.</copyright>
         <item>
-            <title><![CDATA[Agent 学习小结：不想写确定性代码之后]]></title>
+            <title><![CDATA[抓住能抓住的：AI 辅助编程半年记]]></title>
             <link>https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection</link>
             <guid>https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection</guid>
             <pubDate>Sun, 13 Sep 2026 00:00:00 GMT</pubDate>
-            <description><![CDATA[一个基础 Agent 跑起来了，我却发现自己不想再写确定性的代码。重新想了一遍这个问题：AI 辅助的工作模式下，人应该把控什么。]]></description>
-            <content:encoded><![CDATA[<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="从零认识一个基础-agent">从零认识一个基础 Agent<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%BB%8E%E9%9B%B6%E8%AE%A4%E8%AF%86%E4%B8%80%E4%B8%AA%E5%9F%BA%E7%A1%80-agent" class="hash-link" aria-label="从零认识一个基础 Agent的直接链接" title="从零认识一个基础 Agent的直接链接" translate="no">​</a></h2>
-<p>「从零认识 Agent」系列走到第十一篇。demo 已经有个基础 Agent 的样子：会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话存在本地。回看这套代码，AI 写了大部分实现，我负责拆解每一步做什么、检查它写得对不对。</p>
-<p>写到这里，我发现自己出了点问题。或者说，发现了一点变化。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="我开始不想写确定性代码了">我开始不想写确定性代码了<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E6%88%91%E5%BC%80%E5%A7%8B%E4%B8%8D%E6%83%B3%E5%86%99%E7%A1%AE%E5%AE%9A%E6%80%A7%E4%BB%A3%E7%A0%81%E4%BA%86" class="hash-link" aria-label="我开始不想写确定性代码了的直接链接" title="我开始不想写确定性代码了的直接链接" translate="no">​</a></h2>
-<p>最近实现新功能时，我越来越不想自己敲那些确定性的代码：循环的边界、参数的解析、异常的兜底。这些东西我完全会写，但 AI 一轮就能给出可用的实现，我再逐行敲一遍，感觉像在用手扶犁耕地。</p>
-<p>第一次把一个完整功能整体交给 AI 写的时候，我甚至有点愧疚，像在考试里作弊。后来次数多了，愧疚变成了别的东西：不安。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="不安来自哪里">不安来自哪里<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%B8%8D%E5%AE%89%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C" class="hash-link" aria-label="不安来自哪里的直接链接" title="不安来自哪里的直接链接" translate="no">​</a></h2>
-<p>一个来源很模糊：这样做是不是"正道"？毕业这些年攒下来的手艺，交给模型代劳，我是在升级工作方式，还是在自废武功？</p>
-<p>另一个来源很具体：LLM API 是无状态的。每次对话，它都不记得上一次的实现。一个长期项目，全靠 AI 写，意味着每个功能都是"失忆的工程师"接手别人的代码再往下写。我对这个项目的掌控感在流失。代码在仓库里，但"我知道每一行为什么是这样"的那种踏实感没有了。</p>
-<p>更现实的问题是 review。AI 一次实现一个很大的需求，几百上千行变更，逐行审既痛苦又不切实际。审不完的代码，等于没审。可要是干脆不审，这个项目还算是我在维护的吗？</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="重新想这个问题">重新想这个问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%87%8D%E6%96%B0%E6%83%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98" class="hash-link" aria-label="重新想这个问题的直接链接" title="重新想这个问题的直接链接" translate="no">​</a></h2>
-<p>后来我想，难受的可能不是"AI 在写代码"，而是我还在用旧标准要求新模式：逐行掌控。这套标准在亲手敲代码的阶段是美德的来源，在 AI 辅助时代变成了痛苦的来源。</p>
-<p>有意思的是，答案我其实已经在自己的项目里实践过了。</p>
-<p>demo-agent 的模型调用就是无状态的：<code>store=False</code>，服务端不保存任何上下文。我给它的补偿方案是自己在本地管理完整的 Items、做 Session、做 checkpoint。模型没有记忆，我就把记忆做在它外面。</p>
-<p>AI 辅助开发里我做的事是一样的。AGENTS.md 是给 AI 的项目规范，README 里 V1 到 V11 的演进记录是项目的历史记忆，每篇文章的验收表和测试清单定义了"什么算做对了"。项目记忆不在我脑子里，也不在模型脑子里，在仓库里。掌控感的挂点，从"我记得每一行代码"换成了"我维护这个项目的记忆和边界"。</p>
-<p>第十一篇的权限设计，其实就是这件事的缩影：模型提出工具调用，人裁决 allow、ask、deny，批准后才执行。写的时候我把它当成 Agent 的安全设计，现在看，这就是 AI 辅助工作模式的雏形。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="那人应该把控什么">那人应该把控什么<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%82%A3%E4%BA%BA%E5%BA%94%E8%AF%A5%E6%8A%8A%E6%8E%A7%E4%BB%80%E4%B9%88" class="hash-link" aria-label="那人应该把控什么的直接链接" title="那人应该把控什么的直接链接" translate="no">​</a></h2>
-<p>初步的答案，带着"或许"。</p>
-<p>问题的定义权和拆解权在人，这条没什么好犹豫的。拆错了，AI 执行得越好，错得越远。</p>
-<p>其次是逻辑和边界。状态放哪里、谁信任谁、失败了怎么办、路径怎么校验，这些是系列文章里真正花篇幅写的东西。至于那个循环用 <code>for</code> 还是 <code>while</code>，我不再在乎了。</p>
-<p>然后是验收。测试、验证标准、真实环境里跑出来的证据。AI 写得对不对，由我定义的"对"来裁决。</p>
-<p>这样看，我的角色确实在变：从一个写代码的人，变成一个带着开发思维和技术知识的测试。我一开始觉得这话有点自贬，后来想明白了，在这个分工里，测试是最终的质量裁决者。开发思维让我问得出对的问题，技术知识让我在 AI 错的时候能看出来它错在哪。这两样恰恰是毕业这几年攒下来的，没有作废。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="结语">结语<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E7%BB%93%E8%AF%AD" class="hash-link" aria-label="结语的直接链接" title="结语的直接链接" translate="no">​</a></h2>
-<p>这篇没有结论，只有一个阶段性的答案。手写代码作为默认工作方式的时代大概率结束了，但排期管的是交付，管不了判断。判断由谁来做、怎么做，最近想得比之前清楚了。</p>
-<p>系列还会继续往上搭：上下文控制、记忆系统、多 Agent 协作。"人把控什么"这份清单到时候会变长还是变短，不知道。至少现在，我对"不想写确定性代码"这件事没那么不安了。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">系列：从零认识 Agent</a></li>
-<li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/build-agent-11-tool-approval">前文：给工具调用加上权限判断和用户审批</a></li>
-</ul>]]></content:encoded>
+            <description><![CDATA[从 opencode 入坑，到同时开五个六个 coding agent，再到被裁和重写 demo。半年 AI 辅助编程，心流成了奢侈品，把控感得自己拿回来。]]></description>
+            <content:encoded><![CDATA[<p>这两年出了一个词儿，叫“古法编程”，对应着 vibe coding。尤其今年年初 openclaw 爆火，不管是不是 IT 行业的，都开始部署“小龙虾”：外行的可能出钱也要部署，内行的可能熬几个通宵去部署，热火朝天。各式各样的人开始 vibe coding，似乎程序员这个职业的壁垒一下就没了。</p>
+<p>之后，各种概念频出，Prompt engineering、Context engineering、Harness engineering……。随着各厂商的LLM不断迭代升级，各公司老板、领导开始采取要求一定量的token消耗、AI使用率等措施，让开发人员使用AI辅助编程，“古法编程”的手搓似乎已经慢慢被抛弃了。可能是被迫，也可能是懒惰，却正在进行中。</p>
+<p>我是今年1月底从opencode开始正式接触的AI辅助编程，为什么这么晚？一是公司没有给配AI软件，一是我用的neovim在终端中搭的开发环境，当时还不知道或者说还不认为AI做的很好，所以就一直没接入。直到刷到了和claude code差不多的opencode，因为是cli，和我的终端开发习惯很契合，就开始了。</p>
+<p>使用AI的过程中，我从最开始的以为它神通广大，一句两句的要求它，到后面描述各种细节、条件的约束它，给它各种的上下文，差不多算是理解了，如何好好的使用它。</p>
+<p>它从不理解我在说什么，开始慢慢的帮我实现代码，写出来我可能都不知道的官方api调用，再到帮我设计功能、走CI流程，而我只需要自然语言描述即可。</p>
+<p>我不再完全的手写代码（毕竟上面要求AI使用率的），有需求了，基于脑子里对之前代码的熟悉程度，开始和AI一起设计代码架构、bug修复、功能上线。终端分屏，同时开5、6个coding agent，需求可以并行开发，而我的脑子也开始不停的“切换上下文”。不停的在多个coding agent之间确定修改的上下文，确认、提交。</p>
+<p>慢慢的开始适应这种开发模式，不用手写，全靠自然语言，功能就实现了，真是解放双手了啊！可我发现我很难进入心流状态了，之前手搓代码的时候，一下午的时间很快就过去了。但是现在AI辅助之后，一直在不停的切换脑海中的上下文，心流成奢侈品了。</p>
+<p>后来领导们开始要求需求量多起来、发版频次短起来，pd没有需求，开发需要自己想需求。再加上之前把测试部门撤了，问题开始出现了。一个是如果代码太多，review AI写的代码就是一件不切实际的事情，所以就会有不审代码直接发布的情况。另一个是，开发用开发思维去测功能，甚至有的开发是来帮忙的，前后业务逻辑也不会很了解，这样的话，bug率、严重性开始飙升。pd或者运营找到开发，开发说“AI写的，我也不知道”的情况。计算机系统里 CPU 切换上下文的消耗不小，人也差不多，开始心累，白头发疯长。</p>
+<p>后来不心累了，被裁了……。</p>
+<p>虽然用AI辅助编程的时间有半年了，但对于它的底层，比如agent如何连接LLM的原理，我是最近才开始看。原来除了LLM本身，其他基本和之前的软件开发差不多，页面显示、后端接口、逻辑处理，把上下文一并拼接给LLM，LLM计算回来之后，再拆分，再显示。也开始尝试写 agent 的 demo，刚开始我还会去找文档，一点点敲，后面我就直接让AI实现。直到后面想要写session管理的时候，各种逻辑判断、不认识的术语开始出现，但是AI还是一步步要我确认，而我就像个机器人一样不停的点Allow。</p>
+<p>后面想，这不行，没有把控感，我得重写。真到重写的时候，环境构建要装各种工具包和起服务，让AI来吧，它比我快；切换LLM源，需要扒接入文档，好，我可以扒。后面接入不熟悉的技术，我要一个一个扒文档吗？来回切页面吗？NO，太浪费时间了，让AI来。“帮我连接LLM”、“帮我把前后端服务启起来”，“帮我写个联通前后端的demo“，……。AI似乎已经融入了我的开发习惯中，但是我为什么要重写呢？AI可以帮我实现一下费时费力的代码实现，但是逻辑我是要很具体的知道，它的流程是怎么走的，什么东西很重要，否则和一个全新的小白没区别。</p>
+<p>网上关于 AI 的讨论很多：未来不需要程序员了、警惕AI陷阱、LLM 厂商在延缓升级进度、AI 造成了更大的代码“屎山”……。</p>
+<p>言论很多，而我活在当下，抓住能抓住的一切，无疚即可。</p>]]></content:encoded>
             <category>AI</category>
             <category>LLM</category>
             <category>Agent</category>
