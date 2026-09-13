@@ -15,7 +15,7 @@
         <updated>2026-09-13T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[一个基础 Agent 已经跑起来了，我却发现自己不想再写确定性的代码。这不是一篇关于懒惰的忏悔，而是重新想了一遍：AI 辅助的工作模式下，人应该把控什么。]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="从零手写到一个基础-agent">从零手写到一个基础 Agent<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%BB%8E%E9%9B%B6%E6%89%8B%E5%86%99%E5%88%B0%E4%B8%80%E4%B8%AA%E5%9F%BA%E7%A1%80-agent" class="hash-link" aria-label="从零手写到一个基础 Agent的直接链接" title="从零手写到一个基础 Agent的直接链接" translate="no">​</a></h2>
-<p>「从零手写 Agent」系列走到第十一篇。这个 demo 已经有了一个基础 Agent 的样子：它会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，会话存进了数据库。它很小，但每一块都是我从一行 <code>client.responses.create()</code> 开始推出来的。</p>
+<p>「从零手写 Agent」系列走到第十一篇。这个 demo 已经有了一个基础 Agent 的样子：它会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话保存在本地。它很小，但每一块都是我从一行 <code>client.responses.create()</code> 开始推出来的。</p>
 <p>写到这里，我发现自己出了点问题——或者说，发现了一点变化。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="我开始不想写确定性代码了">我开始不想写确定性代码了<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E6%88%91%E5%BC%80%E5%A7%8B%E4%B8%8D%E6%83%B3%E5%86%99%E7%A1%AE%E5%AE%9A%E6%80%A7%E4%BB%A3%E7%A0%81%E4%BA%86" class="hash-link" aria-label="我开始不想写确定性代码了的直接链接" title="我开始不想写确定性代码了的直接链接" translate="no">​</a></h2>
 <p>最近实现新功能时，我越来越不想自己敲那些确定性的代码：循环的边界、参数的解析、异常的兜底。这些东西我完全会写，但 AI 一轮就能给出可用的实现，我再逐行敲一遍，感觉像在用手扶犁耕地。</p>
