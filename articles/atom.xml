@@ -13,38 +13,46 @@
         <id>https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection</id>
         <link href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection"/>
         <updated>2026-09-13T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[一个基础 Agent 已经跑起来了，我却发现自己不想再写确定性的代码。这不是一篇关于懒惰的忏悔，而是重新想了一遍：AI 辅助的工作模式下，人应该把控什么。]]></summary>
+        <summary type="html"><![CDATA[一个基础 Agent 跑起来了，我却发现自己不想再写确定性的代码。这段时间「古法编程」的讨论刷屏，读完各方的争吵，我重新想了一遍：AI 辅助的工作模式下，人应该把控什么。]]></summary>
         <content type="html"><![CDATA[<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="从零认识一个基础-agent">从零认识一个基础 Agent<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%BB%8E%E9%9B%B6%E8%AE%A4%E8%AF%86%E4%B8%80%E4%B8%AA%E5%9F%BA%E7%A1%80-agent" class="hash-link" aria-label="从零认识一个基础 Agent的直接链接" title="从零认识一个基础 Agent的直接链接" translate="no">​</a></h2>
-<p>「从零认识 Agent」系列走到第十一篇。这个 demo 已经有了一个基础 Agent 的样子：它会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话保存在本地。回看这套代码，AI 写了大部分的实现，我负责拆解每一步要做什么、检查它写得对不对。</p>
-<p>写到这里，我发现自己出了点问题——或者说，发现了一点变化。</p>
+<p>「从零认识 Agent」系列走到第十一篇。demo 已经有个基础 Agent 的样子：会调用工具、流式输出、读写文件、联网搜索，写文件前会请求用户批准，多轮会话存在本地。回看这套代码，AI 写了大部分实现，我负责拆解每一步做什么、检查它写得对不对。</p>
+<p>写到这里，我发现自己出了点问题。或者说，发现了一点变化。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="我开始不想写确定性代码了">我开始不想写确定性代码了<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E6%88%91%E5%BC%80%E5%A7%8B%E4%B8%8D%E6%83%B3%E5%86%99%E7%A1%AE%E5%AE%9A%E6%80%A7%E4%BB%A3%E7%A0%81%E4%BA%86" class="hash-link" aria-label="我开始不想写确定性代码了的直接链接" title="我开始不想写确定性代码了的直接链接" translate="no">​</a></h2>
 <p>最近实现新功能时，我越来越不想自己敲那些确定性的代码：循环的边界、参数的解析、异常的兜底。这些东西我完全会写，但 AI 一轮就能给出可用的实现，我再逐行敲一遍，感觉像在用手扶犁耕地。</p>
 <p>第一次把一个完整功能整体交给 AI 写的时候，我甚至有点愧疚，像在考试里作弊。后来次数多了，愧疚变成了别的东西：不安。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="不安来自哪里">不安来自哪里<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E4%B8%8D%E5%AE%89%E6%9D%A5%E8%87%AA%E5%93%AA%E9%87%8C" class="hash-link" aria-label="不安来自哪里的直接链接" title="不安来自哪里的直接链接" translate="no">​</a></h2>
 <p>一个来源很模糊：这样做是不是"正道"？毕业这些年攒下来的手艺，交给模型代劳，我是在升级工作方式，还是在自废武功？</p>
-<p>另一个来源很具体：<strong>LLM API 是无状态的</strong>。每次对话，它都不记得上一次的实现。一个长期项目，全靠 AI 写，意味着每个功能都是"失忆的工程师"接手别人的代码再往下写。我对这个项目的掌控感在流失——代码在仓库里，但"我知道每一行为什么是这样"的那种踏实感没有了。</p>
-<p>更现实的问题是 review。如果 AI 一次实现了一个很大的需求，几百上千行变更，我逐行审代码既痛苦又不切实际。审不完的代码，等于没审。可要是干脆不审，那这个项目还算是我在维护的吗？</p>
+<p>另一个来源很具体：LLM API 是无状态的。每次对话，它都不记得上一次的实现。一个长期项目，全靠 AI 写，意味着每个功能都是"失忆的工程师"接手别人的代码再往下写。我对这个项目的掌控感在流失。代码在仓库里，但"我知道每一行为什么是这样"的那种踏实感没有了。</p>
+<p>更现实的问题是 review。AI 一次实现一个很大的需求，几百上千行变更，逐行审既痛苦又不切实际。审不完的代码，等于没审。可要是干脆不审，这个项目还算是我在维护的吗？</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="原来大家都在吵这件事">原来大家都在吵这件事<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E5%8E%9F%E6%9D%A5%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E5%90%B5%E8%BF%99%E4%BB%B6%E4%BA%8B" class="hash-link" aria-label="原来大家都在吵这件事的直接链接" title="原来大家都在吵这件事的直接链接" translate="no">​</a></h2>
+<p>带着这些疑问，我去小红书和 X 上搜了"古法编程"。这个词八月中旬火起来的，起因是脉脉上一个帖子，说 PDD 是国内最保守的公司，还在全面古法编程。</p>
+<p>小红书上大部分转述在算另一笔账。点赞很高的一篇说，别的大厂想的是把 AI Coding 变成利润，先要求员工用 AI 带来数倍产出，结果是"大家有了 AI 之后，反而更累了"，更激进的直接 AI 裁员。所以还在"古法"的 PDD 反倒成了好去处：一个需求该两周就两周，代码量不进排行榜，token 用量不进考核。热评第一是句反话，"说明 PDD 的牛马比 token 便宜多了"。</p>
+<p>这些帖子聊的是组织。组织怎么用 AI，和我一个写博客的有什么关系。真正让我停下来的是 X 上的个人叙事。</p>
+<p>有个开发者写道，和一位古法编程的大佬聊完，发现自己太依赖 AI 了，组件间距、字体大小都懒得自己改，"回想了一下，自己近半年没有写过一行代码，也不知道是好事还是坏事"。半年。原来不是我一个人这样。</p>
+<p>分歧也很大。担忧断层的人说，沉下心研究底层的人会越来越少，就像汇编，现在除了搞底层的没人碰，"但这也是高手与菜鸟的区别"。更刻薄的说法是，以后手写代码会变成太极拳，主要用来修身养性，古法编程博主的地位对标马保国。</p>
+<p>但另一些人拿出了反例。一个嵌入式程序员在评论区留言，自己写驱动、在 RTOS 上做任务调度，古法比例 100%。X 上有人吐槽 Claude 瞎编 syscall、胡编 /proc 路径，"人类看五分钟文档都不会犯的错，给 AI 一大堆提示还是乱搞"。越冷门的领域，AI 越不可靠，这些地方的人暂时是安全的。</p>
+<p>还有一条两万九千次浏览的帖子，我觉得它泄露了天机。作者说他们的项目周一到周三开会，现场手写伪代码，不求跑得通，但求把每个细节的实现方式定下来、把可能的问题提前挖出来，然后让 AI 去实现。评论区有人反驳，说这只适合需求早就定清楚的项目。但不管适不适应，这件事本身说明：写代码正在从实现环节挪到设计环节。"古法"没有消失，是换了位置。</p>
+<p>当然也有人宣布回不去了。有人假设三家 AI 服务同时宕机会怎样，最高赞的回复是"已经回不去古法编程了"，楼主给自己部署了本地模型，管它叫最后的降级方案。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="重新想这个问题">重新想这个问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%87%8D%E6%96%B0%E6%83%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98" class="hash-link" aria-label="重新想这个问题的直接链接" title="重新想这个问题的直接链接" translate="no">​</a></h2>
-<p>后来我想，难受的可能不是"AI 在写代码"，而是我还在用旧标准要求新模式：<strong>逐行掌控</strong>。这套标准在亲手敲代码的阶段是美德的来源，在 AI 辅助时代变成了痛苦的来源。</p>
-<p>有意思的是，这个问题的答案，我其实已经在自己的项目里实践过了。</p>
-<p>demo-agent 的模型调用就是无状态的：<code>store=False</code>，服务端不保存任何上下文。我给它的补偿方案是自己在本地管理完整的 Items、做 Session、做 checkpoint——模型没有记忆，我就把记忆做在它外面。</p>
-<p>回头一看，我在 AI 辅助开发里做的其实是同一件事：AGENTS.md 是给 AI 的项目规范，README 里 V1 到 V11 的演进记录是项目的历史记忆，每篇文章的验收表和测试清单是"什么算做对了"的定义。**项目记忆不在我脑子里，也不在模型脑子里，在仓库里。**掌控感的挂点，从"我记得每一行代码"换成了"我维护着这个项目的记忆和边界"。</p>
-<p>还有一个巧合。第十一篇写的权限机制是：模型提出工具调用，人裁决 allow、ask、deny，批准后才执行。写的时候我把它当成 Agent 的安全设计，现在回头看，这就是新工作模式的隐喻——<strong>AI 提议，人裁决</strong>。</p>
+<p>后来我想，难受的可能不是"AI 在写代码"，而是我还在用旧标准要求新模式：逐行掌控。这套标准在亲手敲代码的阶段是美德的来源，在 AI 辅助时代变成了痛苦的来源。</p>
+<p>有意思的是，答案我其实已经在自己的项目里实践过了。</p>
+<p>demo-agent 的模型调用就是无状态的：<code>store=False</code>，服务端不保存任何上下文。我给它的补偿方案是自己在本地管理完整的 Items、做 Session、做 checkpoint。模型没有记忆，我就把记忆做在它外面。</p>
+<p>AI 辅助开发里我做的事是一样的。AGENTS.md 是给 AI 的项目规范，README 里 V1 到 V11 的演进记录是项目的历史记忆，每篇文章的验收表和测试清单定义了"什么算做对了"。项目记忆不在我脑子里，也不在模型脑子里，在仓库里。掌控感的挂点，从"我记得每一行代码"换成了"我维护这个项目的记忆和边界"。</p>
+<p>X 上那个开会写伪代码的帖子，说的其实是同一件事，只不过它发生在会议里，发生在我这里是第十一篇的权限设计：模型提出工具调用，人裁决 allow、ask、deny，批准后才执行。写的时候我把它当成 Agent 的安全设计，现在看，这就是 AI 辅助工作模式的雏形。我在自己的小项目里摸索出来的东西，别人在团队尺度上也在摸索。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="那人应该把控什么">那人应该把控什么<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E9%82%A3%E4%BA%BA%E5%BA%94%E8%AF%A5%E6%8A%8A%E6%8E%A7%E4%BB%80%E4%B9%88" class="hash-link" aria-label="那人应该把控什么的直接链接" title="那人应该把控什么的直接链接" translate="no">​</a></h2>
-<p>初步的答案，带着"或许"：</p>
-<ol>
-<li class="">**拿到问题、拆解问题。**问题的定义权和拆解权在人。拆错了，AI 执行得越好，错得越远。</li>
-<li class="">**把控实现逻辑和边界，不把控代码细节。**状态放在哪里、谁信任谁、失败怎么办、路径怎么校验——这些是文章里真正在写的东西。至于那个循环是 <code>for</code> 还是 <code>while</code>，不重要了。</li>
-<li class="">**把控验收。**测试、验证标准、真实环境的运行证据。AI 写得对不对，由我定义的"对"来裁决。</li>
-</ol>
-<p>这样看，我的角色确实在变：从一个写代码的人，变成一个<strong>带着开发思维和技术知识的测试</strong>。这不是贬义——在这个分工里，测试是最终的质量裁决者。开发思维让我问得出对的问题，技术知识让我在 AI 错的时候能看出来它错在哪。这两样恰恰是练手艺那些年攒下来的，没有作废。</p>
+<p>初步的答案，带着"或许"。</p>
+<p>问题的定义权和拆解权在人，这条没什么好犹豫的。拆错了，AI 执行得越好，错得越远。</p>
+<p>其次是逻辑和边界。状态放哪里、谁信任谁、失败了怎么办、路径怎么校验，这些是系列文章里真正花篇幅写的东西。至于那个循环用 <code>for</code> 还是 <code>while</code>，我不再在乎了。</p>
+<p>然后是验收。测试、验证标准、真实环境里跑出来的证据。AI 写得对不对，由我定义的"对"来裁决。</p>
+<p>这样看，我的角色确实在变：从一个写代码的人，变成一个带着开发思维和技术知识的测试。我一开始觉得这话有点自贬，后来想明白了，在这个分工里，测试是最终的质量裁决者。开发思维让我问得出对的问题，技术知识让我在 AI 错的时候能看出来它错在哪。这两样恰恰是毕业这几年攒下来的，没有作废。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="结语">结语<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E7%BB%93%E8%AF%AD" class="hash-link" aria-label="结语的直接链接" title="结语的直接链接" translate="no">​</a></h2>
-<p>这篇没有结论，只有一个阶段性的答案。系列还会继续往上搭：上下文控制、记忆系统、多 Agent 协作。到时候"人把控什么"这份清单会不会变长或者变短，我不知道——但至少现在，我对"不想写确定性代码"这件事没那么不安了。</p>
-<p>它可能不是堕落，只是犁换成了拖拉机。</p>
+<p>这篇没有结论，只有一个阶段性的答案。小红书上有人说现在的需求排期不会给古法编程的交付周期，说得对，手写代码作为默认工作方式的时代大概率结束了。但排期管的是交付，管不了判断。判断谁来做的答案，最近想得比之前清楚了。</p>
+<p>系列还会继续往上搭：上下文控制、记忆系统、多 Agent 协作。"人把控什么"这份清单到时候会变长还是变短，不知道。至少现在，我对"不想写确定性代码"这件事没那么不安了。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-reflection#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
 <ul>
 <li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">系列：从零认识 Agent</a></li>
 <li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/build-agent-11-tool-approval">前文：给工具调用加上权限判断和用户审批</a></li>
+<li class="">小红书 / X 上关于「古法编程」的讨论（2026 年 8–9 月），文中引用的帖子搜索关键词「古法编程」即可找到；<a href="https://x.com/wwwgoubuli/status/1963404589824352550" target="_blank" rel="noopener noreferrer" class="">其中一条讨论"会议手写伪代码"的帖子</a></li>
 </ul>]]></content>
         <author>
             <name>柯寒</name>
