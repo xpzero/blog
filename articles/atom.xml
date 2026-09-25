@@ -2,12 +2,112 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xpzero.github.io/blog/articles</id>
     <title>柯寒的备忘录</title>
-    <updated>2026-09-23T00:00:00.000Z</updated>
+    <updated>2026-09-25T03:58:37.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xpzero.github.io/blog/articles"/>
     <subtitle>关于前端、AI、Agent 与工程实践的个人技术文章。</subtitle>
     <icon>https://xpzero.github.io/blog/img/favicon.ico</icon>
     <rights>Copyright © 2023-2026 Kehan.</rights>
+    <entry>
+        <title type="html"><![CDATA[文章写作与审稿]]></title>
+        <id>https://xpzero.github.io/blog/articles/AGENTS</id>
+        <link href="https://xpzero.github.io/blog/articles/AGENTS"/>
+        <updated>2026-09-25T03:58:37.000Z</updated>
+        <summary type="html"><![CDATA[本文件适用于 articles/ 下的文章和随文资源，并与根目录 AGENTS.md 一起生效。用户对当前文章的具体要求优先。先确认文章类型、引用版本和实际证据，再决定结构与呈现；不要把推荐结构写成每篇通用模板。]]></summary>
+        <content type="html"><![CDATA[<p>本文件适用于 <code>articles/</code> 下的文章和随文资源，并与根目录 <code>AGENTS.md</code> 一起生效。用户对当前文章的具体要求优先。先确认文章类型、引用版本和实际证据，再决定结构与呈现；不要把推荐结构写成每篇通用模板。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="内容链接与系列">内容、链接与系列<a href="https://xpzero.github.io/blog/articles/AGENTS#%E5%86%85%E5%AE%B9%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%B3%BB%E5%88%97" class="hash-link" aria-label="内容、链接与系列的直接链接" title="内容、链接与系列的直接链接" translate="no">​</a></h2>
+<ul>
+<li class="">文章放在最合适的主题目录。目录名、文件名及资源 URL 使用 ASCII，推荐英文 kebab-case；中文用于标题、标签和正文。</li>
+<li class="">已发布文章通常包含 <code>title</code>、<code>description</code>、<code>date</code>、<code>authors</code>、<code>tags</code>；有合适封面才设置 <code>image</code>。未完成或结论不宜发布时设 <code>draft: true</code>；发布时移除。Blog 会自动生成列表、系列、主题、归档和 Feed，无须修改侧边栏或手工索引。</li>
+<li class="">站内文章优先链接相对 <code>.md</code>/<code>.mdx</code> 文件（如 <code>./02-tool-use.md</code>）；图片和文章放在一起，用相对路径引用，添加有意义的替代文本。移动或重命名时同步检查内部链接、系列顺序和兼容跳转。</li>
+<li class=""><code>series</code>、<code>seriesTitle</code>、<code>seriesOrder</code> 定义系列；<code>seriesOrder: 0</code> 为导读。修改 Agent 系列时核对 <code>articles/ai-agent-learning/index.md</code> 与已发布文章顺序连续且唯一；草稿可占后续序号，但不进入生产导航。修改 LLM 系列时核对 <code>articles/llm-learning/overview.md</code> 与系列元数据。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="写作主线与初学者视角">写作主线与初学者视角<a href="https://xpzero.github.io/blog/articles/AGENTS#%E5%86%99%E4%BD%9C%E4%B8%BB%E7%BA%BF%E4%B8%8E%E5%88%9D%E5%AD%A6%E8%80%85%E8%A7%86%E8%A7%92" class="hash-link" aria-label="写作主线与初学者视角的直接链接" title="写作主线与初学者视角的直接链接" translate="no">​</a></h2>
+<ul>
+<li class="">先判断主要类型：总结型整理已验证知识的关系；问题导向型回答具体障碍或任务；探索型调查暂不确定的解释。三者都从真实而具体的疑问开始，交代背景、环境和为什么值得解决。推荐顺序是问题或目标 → 最小可运行或可观察示例 → 求证与解释 → 有边界的回答 → 未解决问题；依类型调整，不拼接三套模板。</li>
+<li class="">作者处于 LLM、Agent 初学阶段。只依赖前文已经建立或本篇已求证的概念；首次使用术语先解释，API、命令、协议名称保留英文并说明作用。可假定读者具备基础 Web 开发知识，不能假定读者读过系列其他文章。</li>
+<li class="">回指确有帮助的旧文时，写“前面”或“前文”，链接文字用“前文：文章标题”；不要用“第 N 篇”。这条<strong>只规范发生回指时的写法</strong>，不要求每篇回顾上一篇。</li>
+<li class="">个人工作笔记从问题、操作或可见现象切入，不写解释文章安排的元叙述。缺乏作者经历的证据时，不编造猜想、错误尝试、早年阅读、实验或情绪；避免“众所周知”“显然”和事后全知视角。论文或技术史只有直接帮助当前问题时才引入。</li>
+<li class="">讲功能按读者遇到问题的顺序展开：用户要做什么 → 需要哪些数据和接口 → 怎样保存、读取、更新 → 状态与失败。先交代原有流程及其遇到的障碍，再引入解决办法；每个表、字段、指针或机制先交代用途，不按源码模块逐个平铺。正文用流程和具体例子解释，不让读懂文章依赖方法名；必要时再给简短代码和固定版本链接。多个各带用途的字段改用列表。</li>
+<li class="">面向不了解项目的读者写正文：只保留影响主要结论或证据真实性的限制，集中在相关位置简短交代，避免每段反复补充边界。项目内部的调试报错、交付阶段和排障流水账，除非直接帮助解释读者的问题，否则不写进正文；仍须诚实说明模拟数据或未验证范围。</li>
+<li class="">写清关键求证步骤、版本、命令、输入、输出及资料来源；只保留有价值的失败尝试。事实、文档建议、推断、示意和开放问题分别标注；观察到行为不等于证明内部原因或跨网关普遍规律。结论只回答开头的问题，不扩大到证据之外。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="代码与跨仓库证据">代码与跨仓库证据<a href="https://xpzero.github.io/blog/articles/AGENTS#%E4%BB%A3%E7%A0%81%E4%B8%8E%E8%B7%A8%E4%BB%93%E5%BA%93%E8%AF%81%E6%8D%AE" class="hash-link" aria-label="代码与跨仓库证据的直接链接" title="代码与跨仓库证据的直接链接" translate="no">​</a></h2>
+<ul>
+<li class="">修改已发布 <code>build-agent-*</code> 文章的代码、输出或行为前，核对文章指向的 <code>xpzero/demo-agent</code> 固定提交，若本地有 <code>../demo-agent</code> 也核对；除用户明确要求外只读。保留作为证据的永久链接，位置变化时更新并说明版本边界。</li>
+<li class="">尚未提交的跨仓库实现不能先于证据推送文章；应先提交实现，再补固定提交链接。外部项目机制首次进入主线时说明归属及实际借用的术语、结构或语义；区分本地重写之处。源码链接固定到核对过的提交，当前用法可引官方文档。</li>
+<li class="">代码、命令和配置应可运行，不能运行的标为伪代码；摘录省略上下文时标明。术语、字段、接口、图与输出须与引用版本一致。服务商或网关特有行为注明条件，不把兼容 OpenAI 端点理解为行为相同。操作命令说明失败方式、取舍与必要的回滚步骤。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="真实环境与证据边界">真实环境与证据边界<a href="https://xpzero.github.io/blog/articles/AGENTS#%E7%9C%9F%E5%AE%9E%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%AF%81%E6%8D%AE%E8%BE%B9%E7%95%8C" class="hash-link" aria-label="真实环境与证据边界的直接链接" title="真实环境与证据边界的直接链接" translate="no">​</a></h2>
+<ul>
+<li class="">基于真实项目代码的功能、启动方式和运行结果，<strong>先</strong>在对应版本的真实环境中验证，<strong>再</strong>写作和下结论。使用项目文档规定的配置、依赖、入口与启动命令，覆盖文中用户操作。独立测试库和无敏感演示数据可经正常配置接入。</li>
+<li class="">若正常启动失败、环境缺失或关键流程未通过，记录错误及其对正文结论的影响，通常保持 <code>draft: true</code>，待修复后再验证。用户明确要求发布时，可以收窄正文到已核实的代码流程与演示页面，并就近说明未验证的功能效果；不得将演示结论写成真实模型运行结果。不能另建临时 Harness、换应用入口、注入服务或模型响应、拦截请求绕过失败，然后把页面写成正常运行证据。不要为了验证调用付费 API 或泄露凭据。</li>
+<li class="">功能截图来自上述真实运行过程。涉及模型或外部服务的功能结论，须使用实际配置的服务取得真实响应；mock、fixture、预览或注入数据只能明确标为测试或演示，不能填补端到端证据缺口。截图附近说明可见状态和环境；保留对应提交、依赖版本、配置、启动命令、输入与输出以便复现，敏感信息可遮盖但不能改结果。</li>
+<li class="">单元测试、集成测试、构建、真实用户流程分别报告通过、失败或跳过以及各自范围。截图只证明特定 UI 状态；模拟模型事件不能证明真实模型会选择工具；真实页面或数据库不能单独证明整个功能可用。页面报错、后端成功但前端没展示等须在相关结论附近写明。</li>
+<li class="">涉及审批、恢复、并发等状态机制时，先定义状态由谁产生、说明什么；区分权限结果、用户决定与执行结果。按真实时序交代持久化边界、副作用、连接结束与恢复事实来源；不同执行顺序不能混为一谈。已知竞争窗口、配置加载时机与恢复限制放在相关边界处。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="呈现与检查">呈现与检查<a href="https://xpzero.github.io/blog/articles/AGENTS#%E5%91%88%E7%8E%B0%E4%B8%8E%E6%A3%80%E6%9F%A5" class="hash-link" aria-label="呈现与检查的直接链接" title="呈现与检查的直接链接" translate="no">​</a></h2>
+<ul>
+<li class="">Agent 系列新文章按用户要求提供与问题相关的实际代码、截图及图文解释；截图须符合上面的真实环境与证据边界。若无法取得合格的功能截图，写明验证缺口，按上面的发布条件决定是否保持草稿；不能用模拟画面填补证据。图文并茂不等于每节都配图。</li>
+<li class="">根据关系选择表达：知识层级可用 MarkMap，流程或时序可用 Mermaid 或可校对的插图，逐项差异用表格，短内容用正文。先检查示例、表格和截图是否已解释清楚，再决定是否加图；图文对应、箭头和中文标签准确。<strong>不强制每节配图或使用固定画图工具</strong>；图不是目录的翻版，主结论和证据不能只放在图或折叠区。确有求证前后认识变化才画两种认识，不虚构初始错误。</li>
+<li class="">使用 Docusaurus 内置语法或组件前查 <code>../guides/docusaurus-writing.md</code>，有疑问再核对当前版本的官方文档和项目配置。已有自定义 MDX 组件见 <code>src/theme/MDXComponents.js</code>；使用 MarkMap 时复用 <code>src/components/MarkMap/</code> 并本地导入。</li>
+<li class="">标题层级连续；长期引用才加显式 ID，使用 MDX 注释式 <code>## 标题 {/* #stable-id */}</code>，同页唯一。功能图、代码和截图各有正文解释，保持版本和场景一致。校对图片路径、替代文本、内部链接、图形渲染和构建警告；验证和部署规则见根目录 <code>AGENTS.md</code>。</li>
+</ul>]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[会话越来越长，Agent 还记得什么？]]></title>
+        <id>https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability</id>
+        <link href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability"/>
+        <updated>2026-09-25T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[从一次旧会话的续聊出发，理解历史为何放不进模型请求、近期截断与摘要怎样配合，以及页面和统计能证明什么。]]></summary>
+        <content type="html"><![CDATA[<p>打开旧会话，页面已经能显示之前的消息，也能接着聊。但如果这个会话越聊越长，模型回答下一句时，还能看到最早聊过的内容吗？</p>
+<p>页面显示旧消息，只说明应用保存了这些对话。模型不会自己去数据库翻历史；每次提问，后端都要重新准备这一轮发给模型的内容。所谓“记得”，在这里先指<strong>这次请求里有没有带上那段历史</strong>，而不是模型长期保存了这条会话。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="原来的续聊方式把对话历史再发一遍">原来的续聊方式：把对话历史再发一遍<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E5%8E%9F%E6%9D%A5%E7%9A%84%E7%BB%AD%E8%81%8A%E6%96%B9%E5%BC%8F%E6%8A%8A%E5%AF%B9%E8%AF%9D%E5%8E%86%E5%8F%B2%E5%86%8D%E5%8F%91%E4%B8%80%E9%81%8D" class="hash-link" aria-label="原来的续聊方式：把对话历史再发一遍的直接链接" title="原来的续聊方式：把对话历史再发一遍的直接链接" translate="no">​</a></h2>
+<p>先看没有长度管理的流程。用户在旧会话中发出新消息，后端保存这条消息，沿着当前会话的消息链找回此前的用户提问和助手回复，按先后顺序与系统提示一起发给模型。系统提示是应用放在请求开头、交代模型任务的消息；模型这一轮收到的是重新拼好的请求，不是数据库本身。</p>
+<p>假设先后聊了 A、B、C，现在又发出 D。这里的字母只是示意，不是实际请求记录：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">数据库中的会话：A → B → C → D</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">没有长度管理时，本轮尝试发送：系统提示 + A + B + C + D</span><br></div></code></pre></div></div>
+<p>下一轮还会取回更长的历史。模型单次请求能容纳的内容有上限，还要为回答留空间；如果把过长的历史照单全发，请求可能因提示词超长被拒绝，用户拿不到这一轮回答。例如智谱接口文档列有 prompt 超长的 400 错误。这种错误不是模型读了前半段再忽略后半段。</p>
+<p>因此，长度管理必须发生在发送前。下面讨论的是 <a href="https://github.com/xpzero/demo-agent/tree/65e3f21cdc91f858e9347cccf6bc39daf6a0c63b" target="_blank" rel="noopener noreferrer" class="">demo-agent 的这一版实现</a>：它怎样缩短本轮输入，以及缩短之后还能保留什么。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="先缩短输入留下近期原文">先缩短输入：留下近期原文<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E5%85%88%E7%BC%A9%E7%9F%AD%E8%BE%93%E5%85%A5%E7%95%99%E4%B8%8B%E8%BF%91%E6%9C%9F%E5%8E%9F%E6%96%87" class="hash-link" aria-label="先缩短输入：留下近期原文的直接链接" title="先缩短输入：留下近期原文的直接链接" translate="no">​</a></h2>
+<p>最直接的办法是从新到旧挑消息，优先保留最近的原话。如果预算只装得下 C、D，本轮就不发送 A、B。数据库仍保存 A、B，页面也可以回显它们；只是模型这次回答时看不到它们。</p>
+<p><img decoding="async" loading="lazy" alt="同一段会话的原文仍保存 A、B、C、D；只保留近期原文时，本轮请求发送系统提示和 C、D，暂不发送 A、B" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NjAgMzIwIiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUgZGVzYyI+CiAgPHRpdGxlIGlkPSJ0aXRsZSI+5L+d5a2Y55qE5Y6G5Y+y5LiO5pys6L2u6K+35rGC55qE5a+55q+UPC90aXRsZT4KICA8ZGVzYyBpZD0iZGVzYyI+56S65oSP77ya5pWw5o2u5bqT5L+d55WZIEHjgIFC44CBQ+OAgUTjgILmsqHmnInplb/luqbnrqHnkIbml7bvvIzmnKzova7or7fmsYLluKbns7vnu5/mj5DnpLrlkowgQeOAgULjgIFD44CBRO+8m+mihOeul+WPquWuuee6s+acgOi/keeahOS4pOadoeWOn+aWh+aXtu+8jOezu+e7n+aPkOekuuS4jiBD44CBRCDov5vlhaXor7fmsYLvvIxB44CBQiDku43lnKjmlbDmja7lupPjgII8L2Rlc2M+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9Ijk2MCIgaGVpZ2h0PSIzMjAiIHJ4PSIyMCIgZmlsbD0iI2Y2ZjhmYyIvPgogIDxzdHlsZT4KICAgIHRleHQgeyBmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAnUGluZ0ZhbmcgU0MnLCAnTWljcm9zb2Z0IFlhSGVpJywgc2Fucy1zZXJpZjsgZmlsbDogIzFkMmEzYzsgfQogICAgLmhlYWRpbmcgeyBmb250LXNpemU6IDIycHg7IGZvbnQtd2VpZ2h0OiA3MDA7IH0KICAgIC5sYWJlbCB7IGZvbnQtc2l6ZTogMThweDsgZm9udC13ZWlnaHQ6IDYwMDsgfQogICAgLm5vdGUgeyBmb250LXNpemU6IDE2cHg7IGZpbGw6ICM0YzViNzA7IH0KICAgIC50aWxlIHsgZmlsbDogI2ZmZjsgc3Ryb2tlOiAjOWNhYmMxOyBzdHJva2Utd2lkdGg6IDI7IH0KICAgIC5rZXB0IHsgZmlsbDogI2RjZTlmZjsgc3Ryb2tlOiAjNGM3OGMwOyBzdHJva2Utd2lkdGg6IDI7IH0KICA8L3N0eWxlPgogIDx0ZXh0IHg9IjM1IiB5PSI0MyIgY2xhc3M9ImhlYWRpbmciPuWOhuWPsui/mOWcqO+8jOWPkemAgeeahOWGheWuueWPr+S7peWPmOefrTwvdGV4dD4KICA8dGV4dCB4PSIzNSIgeT0iODIiIGNsYXNzPSJsYWJlbCI+5pWw5o2u5bqT5L+d5a2YPC90ZXh0PgogIDxnIGNsYXNzPSJ0aWxlIj48cmVjdCB4PSIyMzYiIHk9IjYwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDAiIHJ4PSI5Ii8+PHJlY3QgeD0iMzQ2IiB5PSI2MCIgd2lkdGg9IjkyIiBoZWlnaHQ9IjQwIiByeD0iOSIvPjxyZWN0IHg9IjQ1NiIgeT0iNjAiIHdpZHRoPSI5MiIgaGVpZ2h0PSI0MCIgcng9IjkiLz48cmVjdCB4PSI1NjYiIHk9IjYwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDAiIHJ4PSI5Ii8+PC9nPgogIDxnIGNsYXNzPSJsYWJlbCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+PHRleHQgeD0iMjgyIiB5PSI4NyI+QTwvdGV4dD48dGV4dCB4PSIzOTIiIHk9Ijg3Ij5CPC90ZXh0Pjx0ZXh0IHg9IjUwMiIgeT0iODciPkM8L3RleHQ+PHRleHQgeD0iNjEyIiB5PSI4NyI+RDwvdGV4dD48L2c+CiAgPHBhdGggZD0iTTM1IDExOCBIOTI1IiBzdHJva2U9IiNkN2RmZWIiIHN0cm9rZS13aWR0aD0iMiIvPgogIDx0ZXh0IHg9IjM1IiB5PSIxNTIiIGNsYXNzPSJsYWJlbCI+5rKh5pyJ6ZW/5bqm566h55CGPC90ZXh0PgogIDxyZWN0IHg9IjIzNiIgeT0iMTMwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDAiIHJ4PSI5IiBjbGFzcz0ia2VwdCIvPgogIDxnIGNsYXNzPSJrZXB0Ij48cmVjdCB4PSIzNDYiIHk9IjEzMCIgd2lkdGg9IjkyIiBoZWlnaHQ9IjQwIiByeD0iOSIvPjxyZWN0IHg9IjQ1NiIgeT0iMTMwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDAiIHJ4PSI5Ii8+PHJlY3QgeD0iNTY2IiB5PSIxMzAiIHdpZHRoPSI5MiIgaGVpZ2h0PSI0MCIgcng9IjkiLz48cmVjdCB4PSI2NzYiIHk9IjEzMCIgd2lkdGg9IjkyIiBoZWlnaHQ9IjQwIiByeD0iOSIvPjwvZz4KICA8ZyBjbGFzcz0ibGFiZWwiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjx0ZXh0IHg9IjI4MiIgeT0iMTU3IiBmb250LXNpemU9IjE1Ij7ns7vnu5/mj5DnpLo8L3RleHQ+PHRleHQgeD0iMzkyIiB5PSIxNTciPkE8L3RleHQ+PHRleHQgeD0iNTAyIiB5PSIxNTciPkI8L3RleHQ+PHRleHQgeD0iNjEyIiB5PSIxNTciPkM8L3RleHQ+PHRleHQgeD0iNzIyIiB5PSIxNTciPkQ8L3RleHQ+PC9nPgogIDx0ZXh0IHg9IjM1IiB5PSIyMjIiIGNsYXNzPSJsYWJlbCI+5Y+q5L+d55WZ6L+R5pyf5Y6f5paHPC90ZXh0PgogIDxyZWN0IHg9IjIzNiIgeT0iMjAwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDAiIHJ4PSI5IiBjbGFzcz0ia2VwdCIvPgogIDxnIGNsYXNzPSJrZXB0Ij48cmVjdCB4PSIzNDYiIHk9IjIwMCIgd2lkdGg9IjkyIiBoZWlnaHQ9IjQwIiByeD0iOSIvPjxyZWN0IHg9IjQ1NiIgeT0iMjAwIiB3aWR0aD0iOTIiIGhlaWdodD0iNDAiIHJ4PSI5Ii8+PC9nPgogIDxnIGNsYXNzPSJsYWJlbCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+PHRleHQgeD0iMjgyIiB5PSIyMjciIGZvbnQtc2l6ZT0iMTUiPuezu+e7n+aPkOekujwvdGV4dD48dGV4dCB4PSIzOTIiIHk9IjIyNyI+QzwvdGV4dD48dGV4dCB4PSI1MDIiIHk9IjIyNyI+RDwvdGV4dD48L2c+CiAgPHRleHQgeD0iMzUiIHk9IjI4MyIgY2xhc3M9Im5vdGUiPkHjgIFCIOS7jeWcqOaVsOaNruW6k+S4re+8jOS9hui/measoeS4jeS8muWPkee7meaooeWei+OAgu+8iOekuuaEj++8jOWwmuacquWKoOWFpeaRmOimge+8iTwvdGV4dD4KPC9zdmc+Cg==" width="960" height="320" class="img_rDMc"></p>
+<p>图中两行请求对照的是尚未使用摘要的情况。变化的是<strong>本轮发给模型的内容</strong>，数据库里那四条原文没有被删掉。</p>
+<p>这版程序把本轮输入的默认预算设为 <strong>24,000 个字符</strong>：先给系统提示和已有摘要留位置，再从最新消息向前保留原文。它按字符长度估算，并非模型能接收的 token 数；因此这个预算仍不能保证请求一定不会超长。</p>
+<p>截断解决了“输入不断增长”的问题，却留下一个更难回答的问题：如果 A 中约定了用户目标，B 中定了限制条件，只发 C、D 时，模型还能依据那些早期约定回答吗？它们仍在数据库里，但这轮请求已经没有它们。摘要就是为这个缺口准备的。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="摘要要解决什么问题">摘要要解决什么问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E6%91%98%E8%A6%81%E8%A6%81%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98" class="hash-link" aria-label="摘要要解决什么问题的直接链接" title="摘要要解决什么问题的直接链接" translate="no">​</a></h2>
+<p>摘要把较早的对话压缩为一段短文本，让它与近期原文一起进入下一轮输入。这样模型有机会得到早期目标和约束，不必每次重发全部原话。但压缩会丢失细节：摘要只能代表它实际收录的那些消息，也不能保证模型能从中恢复某句原话。</p>
+<p>继续用 A、B、C、D 举例：假设 A、B 已被收录进摘要，而这轮留给原文的预算只够放 D。发送的内容会是“系统提示 + A、B 的摘要 + D 的原话”。**C 仍在数据库，却既没进摘要，也没在这轮请求里。**这是示意情形，用来区分两种容易混淆的缺失：早期消息被摘要代替，较近的消息也可能因本轮预算而暂时没发送。</p>
+<table><thead><tr><th>在哪里看</th><th>A、B、C、D 各是什么状态</th></tr></thead><tbody><tr><td>数据库和页面历史</td><td>四条原文都还在，页面可以回显</td></tr><tr><td>本轮发给模型的内容</td><td>A、B 用摘要代表，D 保留原话，C 暂时没发送</td></tr><tr><td>摘要的边界</td><td>停在 B，表示 A、B 已收录；不记录 C 在本轮是否被截掉</td></tr></tbody></table>
+<p>实际拼接过程可以从固定提交中的<a href="https://github.com/xpzero/demo-agent/blob/65e3f21cdc91f858e9347cccf6bc39daf6a0c63b/server/agent/context_budget.py#L52-L63" target="_blank" rel="noopener noreferrer" class="">这段代码</a>核对。不看代码也可以直接读上表：这段代码先排除已由摘要代表的旧原文，为提示与摘要留位置，再从剩余原文中挑近期消息。下面只摘录最后几步；变量的准备过程已省略：</p>
+<div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_quZN">server/agent/context_budget.py（节选）</div><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">    living </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">row </span><span class="token keyword" style="color:#00009f">for</span><span class="token plain"> row </span><span class="token keyword" style="color:#00009f">in</span><span class="token plain"> chain_rows</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">              </span><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> summary_upto_message_id </span><span class="token keyword" style="color:#00009f">is</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"> row</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">"id"</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">&gt;</span><span class="token plain"> summary_upto_message_id</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    reserved </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> estimate_tokens</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">system_prompt</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">+</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">        estimate_tokens</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">summary_message</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">"content"</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> summary_message </span><span class="token keyword" style="color:#00009f">else</span><span class="token plain"> </span><span class="token number" style="color:#36acaa">0</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    kept </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> pick_recent_within</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">to_chat_messages</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">living</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> </span><span class="token builtin">max</span><span class="token punctuation" style="color:#393A34">(</span><span class="token number" style="color:#36acaa">0</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> budget </span><span class="token operator" style="color:#393A34">-</span><span class="token plain"> reserved</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token keyword" style="color:#00009f">return</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">system</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">*</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">summary_message</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> summary_message </span><span class="token keyword" style="color:#00009f">else</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">*</span><span class="token plain">kept</span><span class="token punctuation" style="color:#393A34">]</span><br></div></code></pre></div></div>
+<p>原文、摘要和本轮请求之间的关系可以画成一张图。箭头表示数据从哪里来，不表示页面能直接看到模型实际收到的全部内容：</p>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="摘要从哪一轮开始起作用">摘要从哪一轮开始起作用<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E6%91%98%E8%A6%81%E4%BB%8E%E5%93%AA%E4%B8%80%E8%BD%AE%E5%BC%80%E5%A7%8B%E8%B5%B7%E4%BD%9C%E7%94%A8" class="hash-link" aria-label="摘要从哪一轮开始起作用的直接链接" title="摘要从哪一轮开始起作用的直接链接" translate="no">​</a></h2>
+<p>这轮模型请求发出时，用的是<strong>当时已有的摘要</strong>和近期原文。助手回复保存后，后端在聊天流收尾时检查是否需要更新摘要；达到条件才启动后台任务，另发一次模型请求生成新摘要。它不会改变刚刚结束的回答。</p>
+<p><img decoding="async" loading="lazy" alt="摘要更新时序：本轮使用已有摘要；下一轮在后台保存新摘要前开始仍用已有摘要，保存后开始才用新摘要" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NjAgMzkwIiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUgZGVzYyI+CiAgPHRpdGxlIGlkPSJ0aXRsZSI+5Lya6K+d5pGY6KaB5Zyo5LiL5LiA6L2u55Sf5pWI55qE5Lik56eN5pe25bqPPC90aXRsZT4KICA8ZGVzYyBpZD0iZGVzYyI+5pys6L2u5L2/55So5byA5aeL5pe25bey5pyJ55qE5pGY6KaB77yM5Zue5aSN5ZCO6L6+5Yiw6Kem5Y+R5p2h5Lu25omN5byA5aeL5ZCO5Y+w5pu05paw44CC5LiL5LiA6L2u6Iul5Zyo5pu05paw5a6M5oiQ5YmN5byA5aeL77yM5LuN55So5Y6f5p2l55qE5pGY6KaB77yb6Iul5Zyo5a6M5oiQ5ZCO5byA5aeL77yM5YiZ55So5paw5pGY6KaB44CCPC9kZXNjPgogIDxyZWN0IHdpZHRoPSI5NjAiIGhlaWdodD0iMzkwIiByeD0iMjIiIGZpbGw9IiNmN2Y5ZmMiLz4KICA8c3R5bGU+CiAgICB0ZXh0IHsgZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1BpbmdGYW5nIFNDJywgJ01pY3Jvc29mdCBZYUhlaScsIHNhbnMtc2VyaWY7IGZpbGw6ICMxODI2M2I7IH0KICAgIC5zbWFsbCB7IGZvbnQtc2l6ZTogMThweDsgfQogICAgLmxhYmVsIHsgZm9udC1zaXplOiAyMHB4OyBmb250LXdlaWdodDogNjAwOyB9CiAgICAubXV0ZWQgeyBmaWxsOiAjNDM1NDZiOyB9CiAgICAubGluZSB7IGZpbGw6IG5vbmU7IHN0cm9rZTogIzc0ODQ5Yjsgc3Ryb2tlLXdpZHRoOiAzOyBzdHJva2UtbGluZWNhcDogcm91bmQ7IH0KICA8L3N0eWxlPgogIDx0ZXh0IHg9IjQwIiB5PSI0NyIgZm9udC1zaXplPSIyNCIgZm9udC13ZWlnaHQ9IjcwMCI+5paw5pGY6KaB5LuA5LmI5pe25YCZ6IO955So77yfPC90ZXh0PgogIDx0ZXh0IHg9IjQwIiB5PSI3OCIgY2xhc3M9InNtYWxsIG11dGVkIj7mr4/ova7lnKjlvIDlp4vml7bnoa7lrprovpPlhaXvvJvlkI7lj7Dmm7TmlrDkuI3kvJrmlLnliqjlt7Lnu4/lj5Hlh7rnmoTor7fmsYLjgII8L3RleHQ+CiAgPHBhdGggY2xhc3M9ImxpbmUiIGQ9Ik04NCAxNDIgSDg3OCIvPgogIDxjaXJjbGUgY3g9IjEwMCIgY3k9IjE0MiIgcj0iNyIgZmlsbD0iIzMwNWNiMiIvPgogIDxjaXJjbGUgY3g9IjM4MiIgY3k9IjE0MiIgcj0iNyIgZmlsbD0iIzMwNWNiMiIvPgogIDxjaXJjbGUgY3g9IjcyOCIgY3k9IjE0MiIgcj0iNyIgZmlsbD0iIzMwNWNiMiIvPgogIDx0ZXh0IHg9Ijc2IiB5PSIxMjUiIGNsYXNzPSJsYWJlbCI+5pys6L2u5byA5aeLPC90ZXh0PgogIDx0ZXh0IHg9IjY1IiB5PSIxNzciIGNsYXNzPSJzbWFsbCI+5L2/55So5bey5pyJ5pGY6KaB77yI6Iul5pyJ77yJPC90ZXh0PgogIDx0ZXh0IHg9IjI5OSIgeT0iMTI1IiBjbGFzcz0ibGFiZWwiPuacrOi9ruWbnuWkjeWujOaIkDwvdGV4dD4KICA8dGV4dCB4PSIyODQiIHk9IjE3NyIgY2xhc3M9InNtYWxsIj7ovr7liLDmnaHku7bmiY3lvIDlp4vmm7TmlrA8L3RleHQ+CiAgPHRleHQgeD0iNjQwIiB5PSIxMjUiIGNsYXNzPSJsYWJlbCI+5ZCO5Y+w5pu05paw5a6M5oiQPC90ZXh0PgogIDx0ZXh0IHg9IjYzMCIgeT0iMTc3IiBjbGFzcz0ic21hbGwiPuaWsOaRmOimgeW3suS/neWtmDwvdGV4dD4KICA8cmVjdCB4PSI0OCIgeT0iMjE5IiB3aWR0aD0iODY0IiBoZWlnaHQ9IjY1IiByeD0iMTIiIGZpbGw9IiNlOGYwZmYiLz4KICA8Y2lyY2xlIGN4PSI1MjgiIGN5PSIyNTEiIHI9IjYiIGZpbGw9IiMzMDVjYjIiLz4KICA8dGV4dCB4PSI2OSIgeT0iMjU5IiBjbGFzcz0ibGFiZWwiPuS4i+S4gOi9ruiLpeWcqOabtOaWsOWujOaIkOWJjeW8gOWnizwvdGV4dD4KICA8dGV4dCB4PSI2MjQiIHk9IjI1OSIgY2xhc3M9ImxhYmVsIiBmaWxsPSIjMjU0ZDliIj7ku43nlKjml6fmkZjopoE8L3RleHQ+CiAgPHJlY3QgeD0iNDgiIHk9IjMwMCIgd2lkdGg9Ijg2NCIgaGVpZ2h0PSI2NSIgcng9IjEyIiBmaWxsPSIjZTFmM2VhIi8+CiAgPGNpcmNsZSBjeD0iODAxIiBjeT0iMzMyIiByPSI2IiBmaWxsPSIjMjU3YjViIi8+CiAgPHRleHQgeD0iNjkiIHk9IjM0MCIgY2xhc3M9ImxhYmVsIj7kuIvkuIDova7oi6XlnKjmm7TmlrDlrozmiJDlkI7lvIDlp4s8L3RleHQ+CiAgPHRleHQgeD0iNjI0IiB5PSIzNDAiIGNsYXNzPSJsYWJlbCIgZmlsbD0iIzE2Njc0NyI+5L2/55So5paw5pGY6KaBPC90ZXh0Pgo8L3N2Zz4K" width="960" height="390" class="img_rDMc"></p>
+<p>图中两种下一轮的结果，取决于它<strong>开始时</strong>新摘要是否已经保存。无需等后台更新完成才能继续聊天；如果下一轮先到，仍会使用旧摘要。</p>
+<p>历史达到设定长度时，后台会尽量留下最近的原文，把更早的一批内容和旧摘要合成新摘要。如果更新失败，已保存的摘要保持不变；本轮输入仍按长度挑选近期原文。具体触发条件和处理步骤可见<a href="https://github.com/xpzero/demo-agent/blob/65e3f21cdc91f858e9347cccf6bc39daf6a0c63b/server/api/chat_stream.py#L90-L116" target="_blank" rel="noopener noreferrer" class="">回复后的触发流程</a>与<a href="https://github.com/xpzero/demo-agent/blob/65e3f21cdc91f858e9347cccf6bc39daf6a0c63b/server/agent/context_budget.py#L66-L105" target="_blank" rel="noopener noreferrer" class="">摘要构造方式</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="页面上的分隔线能告诉我什么">页面上的分隔线能告诉我什么<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E9%A1%B5%E9%9D%A2%E4%B8%8A%E7%9A%84%E5%88%86%E9%9A%94%E7%BA%BF%E8%83%BD%E5%91%8A%E8%AF%89%E6%88%91%E4%BB%80%E4%B9%88" class="hash-link" aria-label="页面上的分隔线能告诉我什么的直接链接" title="页面上的分隔线能告诉我什么的直接链接" translate="no">​</a></h2>
+<p>重新打开旧会话，页面仍会加载保存的原文。它会在已收录消息的末尾画“更早的对话已压缩为摘要”的线，但不显示摘要正文，也不列出某一轮被长度预算临时截掉的消息。回到示例：线可以画在 B 后面；C 即使在线后，也不保证进了本轮请求。要确切知道某轮发了什么，必须观察那轮实际组装的输入。</p>
+<p>下图展示一条演示会话重新打开后的历史页面：旧消息仍在，摘要分隔线也出现了。会话数据由本机模拟模型和较低的触发阈值生成；这张截图用于说明页面呈现，真实模型的摘要效果仍待验证。</p>
+<p><img decoding="async" loading="lazy" alt="模拟模型演示会话中，旧消息仍在页面上，历史中出现摘要分隔线" src="https://xpzero.github.io/blog/assets/images/history-boundary-87d56d230f2d4646befe33a9340abcbf.png" width="1280" height="800" class="img_rDMc"></p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="统计面板能补上这份答案吗">统计面板能补上这份答案吗<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E7%BB%9F%E8%AE%A1%E9%9D%A2%E6%9D%BF%E8%83%BD%E8%A1%A5%E4%B8%8A%E8%BF%99%E4%BB%BD%E7%AD%94%E6%A1%88%E5%90%97" class="hash-link" aria-label="统计面板能补上这份答案吗的直接链接" title="统计面板能补上这份答案吗的直接链接" translate="no">​</a></h2>
+<p>一次用户提问可能触发多次模型请求，还可能调用工具。后端为聊天过程记录每次模型请求的耗时与用量，以及工具执行的成败和耗时；页面可以查看按会话聚合的统计。但这些记录<strong>没有保存每轮发给模型的完整输入</strong>，因此不能从统计反推 C 有没有被截掉。</p>
+<p>后台生成摘要的请求没有记入这份聊天统计；面板上的次数和用量因此不包含它。接口未返回实测用量时，页面会按字符数估算 token，并标上“估”。<a href="https://github.com/xpzero/demo-agent/blob/65e3f21cdc91f858e9347cccf6bc39daf6a0c63b/server/database/metrics.py" target="_blank" rel="noopener noreferrer" class="">统计查询与账本</a>可用于核对统计口径。</p>
+<p>同一条模拟模型演示会话的面板显示“3 次模型请求”和“约 520 token（估）”。这组数字是演示账本的页面显示，不是实际服务商用量或费用。</p>
+<p><img decoding="async" loading="lazy" alt="模拟模型演示会话的统计面板显示三次聊天模型请求和估算用量" src="https://xpzero.github.io/blog/assets/images/session-stats-218498cb2fd1e526a2db6b7fde6ea33b.png" width="1280" height="800" class="img_rDMc"></p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="回到开头的问题">回到开头的问题<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability#%E5%9B%9E%E5%88%B0%E5%BC%80%E5%A4%B4%E7%9A%84%E9%97%AE%E9%A2%98" class="hash-link" aria-label="回到开头的问题的直接链接" title="回到开头的问题的直接链接" translate="no">​</a></h2>
+<p>旧会话能回显所有原文，不等于模型每次都看到了所有原文。没有长度管理时，后端会尝试把消息链随新问题一起发送，过长请求可能被接口拒绝；这版实现先按字符预算选近期原文，再用摘要代表已收录的早期消息。摘要只能保留部分要点，未收录的中间消息也可能因本轮预算被略过。</p>
+<p>页面分隔线只说明摘要收录到了哪里，统计面板也不保存本轮输入。要回答“模型这一轮具体收到哪几条原话”，还需要记录当时组装并发送的内容。</p>
+<p>本文的流程以文中链接的代码版本为依据；截图展示的是模拟模型演示会话。真实模型生成摘要的效果尚未完成验证。</p>]]></content>
+        <author>
+            <name>柯寒</name>
+            <uri>https://github.com/xpzero</uri>
+        </author>
+        <category label="AI" term="AI"/>
+        <category label="Agent" term="Agent"/>
+        <category label="SQLite" term="SQLite"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Agent 会话管理：刷新页面后，刚才的对话去哪了？]]></title>
         <id>https://xpzero.github.io/blog/articles/ai-agent-learning/session-management</id>
@@ -2278,134 +2378,6 @@
 <li class=""><a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer" class="">GQA: Training Generalized Multi-Query Transformer</a></li>
 <li class=""><a href="https://platform.openai.com/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer" class="">OpenAI Prompt Caching</a></li>
 <li class=""><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer" class="">vLLM: PagedAttention（KV Cache 的工程管理）</a></li>
-</ul>]]></content>
-        <author>
-            <name>柯寒</name>
-            <uri>https://github.com/xpzero</uri>
-        </author>
-        <category label="AI" term="AI"/>
-        <category label="LLM" term="LLM"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[上下文窗口：长了为什么崩，中间为什么被漏掉]]></title>
-        <id>https://xpzero.github.io/blog/articles/llm-learning/context-window</id>
-        <link href="https://xpzero.github.io/blog/articles/llm-learning/context-window"/>
-        <updated>2026-08-06T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[把一份长文档丢给模型让它回答问题，常见两种翻车：要么直接报错"超出长度限制"，要么答是答了，但引用的全是文档开头和结尾的内容，中间部分像没读过一样。]]></summary>
-        <content type="html"><![CDATA[<p>把一份长文档丢给模型让它回答问题，常见两种翻车：要么直接报错"超出长度限制"，要么答是答了，但引用的全是文档开头和结尾的内容，中间部分像没读过一样。</p>
-<p>这两种现象对应上下文窗口的两个层面：<strong>硬上限</strong>（超过直接拒绝）和<strong>软失效</strong>（没超限但用不好）。前面几篇的知识刚好够把两者都解释清。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口里装的比你以为的多">窗口里装的比你以为的多<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%AA%97%E5%8F%A3%E9%87%8C%E8%A3%85%E7%9A%84%E6%AF%94%E4%BD%A0%E4%BB%A5%E4%B8%BA%E7%9A%84%E5%A4%9A" class="hash-link" aria-label="窗口里装的比你以为的多的直接链接" title="窗口里装的比你以为的多的直接链接" translate="no">​</a></h2>
-<p>上下文窗口（context window）是模型单次能处理的 token 总量上限——注意是<strong>总量</strong>，不是"你能发多少"。一个标称 128k 的窗口，实际是几方分的：</p>
-<!-- -->
-<ul>
-<li class=""><strong>系统提示</strong>：<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/token">第一篇</a>实测过，只发 1 个字符，服务端算了 4387 个 token——隐藏提示先占掉一块。</li>
-<li class=""><strong>历史对话</strong>：模型无状态，多轮对话靠每次重发全部历史，聊得越久这块越大。</li>
-<li class=""><strong>模型输出</strong>：生成的内容也在窗口里。输入塞得太满，留给回答的空间就不够，可能话说一半被截断。</li>
-</ul>
-<p>硬上限的报错好处理（收到错误码就截断或分段）；麻烦的是下面这种。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口没满能力先掉了">窗口没满，能力先掉了<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%AA%97%E5%8F%A3%E6%B2%A1%E6%BB%A1%E8%83%BD%E5%8A%9B%E5%85%88%E6%8E%89%E4%BA%86" class="hash-link" aria-label="窗口没满，能力先掉了的直接链接" title="窗口没满，能力先掉了的直接链接" translate="no">​</a></h2>
-<p>实验研究发现一个稳定现象。测法很直白：把一条关键信息（比如"某人的账号是 XXX"）埋进一堆无关文档里，位置从头到尾挪动，每个位置都问模型同一个问题，看它答不答得出。结果按位置画出来是一条 <strong>U 形曲线</strong>：</p>
-<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">回答准确率</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  高 ┤ ●                                       ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     │   ●                                   ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     │     ●                               ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  低 ┤        ● ● ● ● ● ● ● ● ● ● ● ● ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     └─────────────────────────────────────────</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">       开头        ← 关键信息的位置 →        结尾</span><br></div></code></pre></div></div>
-<p>放在<strong>开头或结尾</strong>，模型找得到；放在<strong>中间</strong>，准确率明显下滑。这个结果以论文标题出名：<strong>Lost in the Middle</strong>（迷失在中间，链接见文末）。更扎心的是论文的另一个发现：最差的位置上，部分模型的表现甚至不如<strong>不给文档、闭卷回答</strong>——塞了一堆材料，反而帮了倒忙。</p>
-<p>为什么会这样？前几篇的机制能给出几条线索（注意：这是研究给出的部分解释，不是定论）：</p>
-<ul>
-<li class=""><strong>注意力是稀释的。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>说过，每个位置对前文所有 token 分配权重、总和为 1。前文 500 个 token 时每个平均能分到不少；50000 个 token 时，同样的注意力要摊得极薄，中间部分的信号容易被淹没。</li>
-<li class=""><strong>训练数据的偏置。</strong> 训练语料里，关键信息天然多出现在开头（标题、摘要）和结尾（结论）；训练时见得少的模式，用的时候就弱。</li>
-<li class=""><strong>位置编码的外推。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/position">第五篇</a>提过，不少模型的长窗口是靠 RoPE 外推技巧撑出来的，训练时没真见过那么长的距离，远距离的注意力质量本身就打折。</li>
-</ul>
-<p>所以"支持 128k"和"128k 里每个位置都同样好用"是两回事。宣传页写前者，你的使用体验取决于后者。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="长对话为什么会失忆">长对话为什么会"失忆"<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E9%95%BF%E5%AF%B9%E8%AF%9D%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%A4%B1%E5%BF%86" class="hash-link" aria-label="长对话为什么会&quot;失忆&quot;的直接链接" title="长对话为什么会&quot;失忆&quot;的直接链接" translate="no">​</a></h2>
-<p>现在可以把常见的"聊久了忘事"拆成三种不同的病因：</p>
-<ol>
-<li class=""><strong>真被截断了。</strong> 历史超过窗口，应用只能丢弃最早的消息（或做摘要压缩），被丢掉的内容模型是真的看不到了。
-典型场景：聊了一下午的会话里问"我们最开始定的方案是什么"，它给出一个从没出现过的答案——开头的消息早就不在发送的历史里了。</li>
-<li class=""><strong>迷失在中间。</strong> 历史都在窗口内，但你几十轮前说的那句关键设定，正好落在 U 形曲线的谷底。
-典型场景：第 3 轮说过"回答都用英文"，第 40 轮它突然改回中文；把设定重新说一遍立刻恢复——信息在，只是没被"看"到。</li>
-<li class=""><strong>注意力被带偏。</strong> 上下文里塞了大量无关内容（比如粘贴的长日志），相关信息的权重被稀释。
-典型场景：贴了 500 行日志让它找报错原因，它揪着日志里无关紧要的一行大做文章，反而没注意你在开头写的复现步骤。</li>
-</ol>
-<p>三种病因对策不同：第 1 种要控制历史长度、重要设定重复申明；第 2、3 种的通用解法是<strong>别把窗口当垃圾桶</strong>——上下文越干净、关键信息越靠前或靠后，效果越稳。分不清是哪种时有个简易鉴别法：<strong>新开一个对话，只带上关键信息重问一遍</strong>——恢复正常就是 2 或 3（信息被淹没），依旧答错才可能是模型本身不会。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="为什么窗口不能无限大">为什么窗口不能无限大<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%AA%97%E5%8F%A3%E4%B8%8D%E8%83%BD%E6%97%A0%E9%99%90%E5%A4%A7" class="hash-link" aria-label="为什么窗口不能无限大的直接链接" title="为什么窗口不能无限大的直接链接" translate="no">​</a></h2>
-<p>窗口大小不是厂商抠门，是三条成本曲线压着：</p>
-<ul>
-<li class=""><strong>计算量随长度平方涨。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>提过 n 个 token 有 n×n 对注意力打分：窗口从 4k 到 128k，长 32 倍，这部分计算涨约 1000 倍。</li>
-<li class=""><strong>KV Cache 随长度线性涨。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache">第七篇</a>算过量级，长上下文直接吃显存。</li>
-<li class=""><strong>数据难。</strong> 几十万 token 且前后真有依赖关系的训练样本本来就稀少。</li>
-</ul>
-<p>理解了成本，也就理解了另一件事：<strong>把窗口用满不等于用好</strong>。费用按 token 计，长输入的预填充又慢（首字延迟涨），效果还可能掉——三头亏。先做减法（删无关内容），再考虑检索（只把相关段落塞进上下文，这就是 RAG 的动机，属于应用层话题，见 <a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">Agent 系列</a>）。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="用的时候真正要注意的">用的时候真正要注意的<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%94%A8%E7%9A%84%E6%97%B6%E5%80%99%E7%9C%9F%E6%AD%A3%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84" class="hash-link" aria-label="用的时候真正要注意的的直接链接" title="用的时候真正要注意的的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><strong>给长文档任务做位置设计</strong>：指令和关键约束放开头或结尾，别埋在材料中间；材料很长时，问题重复一遍放在末尾是常见有效的土办法。</li>
-<li class=""><strong>窗口预算要留出口</strong>：预估输出长度，别让输入把窗口顶满。</li>
-<li class=""><strong>截断策略自己定</strong>：靠服务端报错兜底不如自己数着 token 截（<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/token">第一篇</a>讲过怎么数），至少能决定丢哪段，而不是被动丢最早的。</li>
-<li class=""><strong>长上下文能力要实测</strong>：不同模型在同样长度下的表现差异很大，拿自己的真实文档做几次"把关键句藏在不同位置"的测试，比看宣传数字可靠。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><a href="https://arxiv.org/abs/2307.03172" target="_blank" rel="noopener noreferrer" class="">Lost in the Middle: How Language Models Use Long Contexts</a></li>
-<li class=""><a href="https://platform.openai.com/docs/models" target="_blank" rel="noopener noreferrer" class="">OpenAI：模型上下文窗口说明</a></li>
-<li class=""><a href="https://github.com/gkamradt/LLMTest_NeedleInAHaystack" target="_blank" rel="noopener noreferrer" class="">Needle In A Haystack 测试（长上下文检索能力评测）</a></li>
-</ul>]]></content>
-        <author>
-            <name>柯寒</name>
-            <uri>https://github.com/xpzero</uri>
-        </author>
-        <category label="AI" term="AI"/>
-        <category label="LLM" term="LLM"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[训练与微调：模型的"性格"从哪来]]></title>
-        <id>https://xpzero.github.io/blog/articles/llm-learning/training</id>
-        <link href="https://xpzero.github.io/blog/articles/llm-learning/training"/>
-        <updated>2026-08-06T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[前面八篇拆完了推理——一句话进去、一段话出来的全过程。但有个问题一直悬着：那几百亿个参数里的"知识"和"分寸"是哪来的？为什么它会礼貌地拒绝出格请求，为什么它"记得"的资料会过时，又为什么它会自信地记错？]]></summary>
-        <content type="html"><![CDATA[<p>前面八篇拆完了推理——一句话进去、一段话出来的全过程。但有个问题一直悬着：那几百亿个参数里的"知识"和"分寸"是哪来的？为什么它会礼貌地拒绝出格请求，为什么它"记得"的资料会过时，又为什么它会自信地记错？</p>
-<p>这些都是训练阶段刻进去的。<strong>先声明：本篇是文档和公开资料的转述整理，不含实测</strong>——训练一次大模型的成本决定了没法像前几篇那样跑个实验验证。资料来源列在文末。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="两个阶段两种性格来源">两个阶段，两种性格来源<a href="https://xpzero.github.io/blog/articles/llm-learning/training#%E4%B8%A4%E4%B8%AA%E9%98%B6%E6%AE%B5%E4%B8%A4%E7%A7%8D%E6%80%A7%E6%A0%BC%E6%9D%A5%E6%BA%90" class="hash-link" aria-label="两个阶段，两种性格来源的直接链接" title="两个阶段，两种性格来源的直接链接" translate="no">​</a></h2>
-<p>主流聊天模型的训练大致分两步，各自塑造模型的一半"性格"：</p>
-<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="预训练读遍语料学会接话">预训练：读遍语料，学会接话<a href="https://xpzero.github.io/blog/articles/llm-learning/training#%E9%A2%84%E8%AE%AD%E7%BB%83%E8%AF%BB%E9%81%8D%E8%AF%AD%E6%96%99%E5%AD%A6%E4%BC%9A%E6%8E%A5%E8%AF%9D" class="hash-link" aria-label="预训练：读遍语料，学会接话的直接链接" title="预训练：读遍语料，学会接话的直接链接" translate="no">​</a></h3>
-<p>拿海量文本（网页、书籍、代码等）做一件极其单调的事：遮住下一个词，让模型猜，猜错就调参数——就是<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/transformer-overview">第三篇</a>那个"预测下一个 token"，重复几万亿次。</p>
-<p>这个阶段产出的叫<strong>基座模型（base model）</strong>。它已经把语言规律、事实知识、推理模式压进了参数，但它只会"接话"不会"对话"：你问"北京是哪国首都？"，它可能接"上海是哪国首都？天津是哪国首都？"——因为训练语料里，试卷上一道题后面往往跟着下一道题。</p>
-<p>两个重要推论从这里来：</p>
-<ul>
-<li class=""><strong>知识有截止日期。</strong> 参数里的"知识"就是训练语料的统计压缩，语料收集截止之后的事，模型参数里没有。</li>
-<li class=""><strong>记忆是有损的。</strong> 压缩几万亿 token 到几百亿参数，细节必然丢失。高频事实（巴黎是法国首都）记得牢，低频细节（某个小库的冷门函数签名）容易记串——<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/sampling">第六篇</a>说过模型没有"不知道"的出口，记串了也会流畅地说出来。幻觉的另一半成因在这里。</li>
-</ul>
-<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="对齐学会好好说话">对齐：学会"好好说话"<a href="https://xpzero.github.io/blog/articles/llm-learning/training#%E5%AF%B9%E9%BD%90%E5%AD%A6%E4%BC%9A%E5%A5%BD%E5%A5%BD%E8%AF%B4%E8%AF%9D" class="hash-link" aria-label="对齐：学会&quot;好好说话&quot;的直接链接" title="对齐：学会&quot;好好说话&quot;的直接链接" translate="no">​</a></h3>
-<p>把只会接话的基座模型调教成助手，通常再过两道工序（统称对齐，alignment）：</p>
-<ul>
-<li class=""><strong>SFT（Supervised Fine-Tuning，监督微调）</strong>：用人写的高质量问答对继续训练，教会它"这是对话，你是助手"的格式和口吻。</li>
-<li class=""><strong>RLHF（Reinforcement Learning from Human Feedback，人类反馈强化学习）</strong>：对同一问题的多个回答让人排序打分，训练模型偏向人类喜欢的那种。近年也有 DPO 等更简化的替代方案（链接见文末）。</li>
-</ul>
-<p>你感受到的"性格"——礼貌、拒绝越界话题、遇事先道歉、爱用列表——多数是这一步的产物，不是预训练语料的自然结果。副作用也在这一步产生：对齐过度会让模型变得过分谨慎或討好（研究里叫 sycophancy，谄媚），这是各家持续调整的平衡。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="微调什么条件下才值得做">微调：什么条件下才值得做<a href="https://xpzero.github.io/blog/articles/llm-learning/training#%E5%BE%AE%E8%B0%83%E4%BB%80%E4%B9%88%E6%9D%A1%E4%BB%B6%E4%B8%8B%E6%89%8D%E5%80%BC%E5%BE%97%E5%81%9A" class="hash-link" aria-label="微调：什么条件下才值得做的直接链接" title="微调：什么条件下才值得做的直接链接" translate="no">​</a></h2>
-<p>微调（fine-tuning）是在现成模型上用自己的数据继续训练。听起来是"让模型懂我的业务"的直觉方案，但它有明确的适用区间——判断框架比结论重要：</p>
-<p><strong>信号对了才上微调（同时满足越多越合适）：</strong></p>
-<ul>
-<li class=""><strong>要改的是"行为"而不是"知识"。</strong> 微调擅长固化格式、语气、领域术语用法、特定输出结构；不擅长灌新知识——想让模型知道最新资料，检索（把资料放进上下文）比微调更直接可靠。</li>
-<li class=""><strong>提示词已到天花板。</strong> 写了详尽的提示词、给了充分示例，效果仍不达标——而不是还没认真调过提示词就想训模型。</li>
-<li class=""><strong>有足够多的高质量样本。</strong> 通常几百到几千条起步，且质量比数量重要：模型会连数据里的错误一起学走。</li>
-<li class=""><strong>调用量大到摊得平成本。</strong> 微调的收益之一是把长提示词"压进"参数，省掉每次请求的 token；低频调用摊不平训练和维护成本。</li>
-</ul>
-<p><strong>信号不对就先别动它：</strong></p>
-<ul>
-<li class="">需求还在频繁变（提示词改一行就能上线，微调要重训重部署）；</li>
-<li class="">数据里有隐私或权属问题（训进参数的东西很难"删除"）；</li>
-<li class="">期望它"从此不再幻觉"（微调改变倾向，不提供保证）。</li>
-</ul>
-<p>拿一个具体场景把框架走一遍——"客服机器人，要求回复统一用公司话术，且能回答产品细节"：</p>
-<table><thead><tr><th>需求拆开看</th><th>对信号</th><th>结论</th></tr></thead><tbody><tr><td>统一话术、固定格式</td><td>改"行为"✓，样本好攒（历史客服记录）✓</td><td>适合微调</td></tr><tr><td>回答产品细节</td><td>这是"知识"，且产品每月更新 ✗</td><td>用检索，别训</td></tr><tr><td>上线前还在改需求</td><td>需求未稳 ✗</td><td>先用提示词顶着</td></tr></tbody></table>
-<p>同一个项目里，一半需求适合微调、一半不适合——<strong>微调不是"上"或"不上"的整体决定，而是按需求逐条判断</strong>。</p>
-<p>实操上，行业主流路径是循序渐进：<strong>先提示词，再检索（RAG），最后才考虑微调</strong>——三者也常组合使用。前两步的实践属于应用层，展开在 <a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">Agent 系列</a>。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="系列到这里收尾">系列到这里收尾<a href="https://xpzero.github.io/blog/articles/llm-learning/training#%E7%B3%BB%E5%88%97%E5%88%B0%E8%BF%99%E9%87%8C%E6%94%B6%E5%B0%BE" class="hash-link" aria-label="系列到这里收尾的直接链接" title="系列到这里收尾的直接链接" translate="no">​</a></h2>
-<p>九篇下来，<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/overview">系列开篇</a>"先看全貌"那张流程图上的每一站都走过了：文本切成 token（01），token 变向量（02），几十层注意力加工（03/04/05），概率表采样出下一个词（06），循环生成并缓存（07），全程受窗口约束（08），而模型的知识和分寸来自训练（09）。</p>
-<p>黑盒没有完全透明——每一篇都留了没展开的深水区（文末链接就是入口）——但至少现在，看到"答非所问""聊久失忆""一本正经胡说"时，能指出机制上大概发生了什么。想动手把模型用进程序里，从 <a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-01-single-call">Agent 系列第一篇</a>接着走。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/llm-learning/training#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener noreferrer" class="">Training language models to follow instructions（InstructGPT，SFT+RLHF 流程）</a></li>
-<li class=""><a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener noreferrer" class="">Direct Preference Optimization（DPO）</a></li>
-<li class=""><a href="https://platform.openai.com/docs/guides/fine-tuning" target="_blank" rel="noopener noreferrer" class="">OpenAI Fine-tuning guide（何时该微调的官方建议）</a></li>
-<li class=""><a href="https://arxiv.org/abs/2310.13548" target="_blank" rel="noopener noreferrer" class="">Towards Understanding Sycophancy in Language Models</a></li>
 </ul>]]></content>
         <author>
             <name>柯寒</name>
