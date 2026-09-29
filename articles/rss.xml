@@ -4,57 +4,11 @@
         <title>柯寒的备忘录</title>
         <link>https://xpzero.github.io/blog/articles</link>
         <description>关于前端、AI、Agent 与工程实践的个人技术文章。</description>
-        <lastBuildDate>Fri, 25 Sep 2026 03:58:37 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 25 Sep 2026 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>zh-CN</language>
         <copyright>Copyright © 2023-2026 Kehan.</copyright>
-        <item>
-            <title><![CDATA[文章写作与审稿]]></title>
-            <link>https://xpzero.github.io/blog/articles/AGENTS</link>
-            <guid>https://xpzero.github.io/blog/articles/AGENTS</guid>
-            <pubDate>Fri, 25 Sep 2026 03:58:37 GMT</pubDate>
-            <description><![CDATA[本文件适用于 articles/ 下的文章和随文资源，并与根目录 AGENTS.md 一起生效。用户对当前文章的具体要求优先。先确认文章类型、引用版本和实际证据，再决定结构与呈现；不要把推荐结构写成每篇通用模板。]]></description>
-            <content:encoded><![CDATA[<p>本文件适用于 <code>articles/</code> 下的文章和随文资源，并与根目录 <code>AGENTS.md</code> 一起生效。用户对当前文章的具体要求优先。先确认文章类型、引用版本和实际证据，再决定结构与呈现；不要把推荐结构写成每篇通用模板。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="内容链接与系列">内容、链接与系列<a href="https://xpzero.github.io/blog/articles/AGENTS#%E5%86%85%E5%AE%B9%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%B3%BB%E5%88%97" class="hash-link" aria-label="内容、链接与系列的直接链接" title="内容、链接与系列的直接链接" translate="no">​</a></h2>
-<ul>
-<li class="">文章放在最合适的主题目录。目录名、文件名及资源 URL 使用 ASCII，推荐英文 kebab-case；中文用于标题、标签和正文。</li>
-<li class="">已发布文章通常包含 <code>title</code>、<code>description</code>、<code>date</code>、<code>authors</code>、<code>tags</code>；有合适封面才设置 <code>image</code>。未完成或结论不宜发布时设 <code>draft: true</code>；发布时移除。Blog 会自动生成列表、系列、主题、归档和 Feed，无须修改侧边栏或手工索引。</li>
-<li class="">站内文章优先链接相对 <code>.md</code>/<code>.mdx</code> 文件（如 <code>./02-tool-use.md</code>）；图片和文章放在一起，用相对路径引用，添加有意义的替代文本。移动或重命名时同步检查内部链接、系列顺序和兼容跳转。</li>
-<li class=""><code>series</code>、<code>seriesTitle</code>、<code>seriesOrder</code> 定义系列；<code>seriesOrder: 0</code> 为导读。修改 Agent 系列时核对 <code>articles/ai-agent-learning/index.md</code> 与已发布文章顺序连续且唯一；草稿可占后续序号，但不进入生产导航。修改 LLM 系列时核对 <code>articles/llm-learning/overview.md</code> 与系列元数据。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="写作主线与初学者视角">写作主线与初学者视角<a href="https://xpzero.github.io/blog/articles/AGENTS#%E5%86%99%E4%BD%9C%E4%B8%BB%E7%BA%BF%E4%B8%8E%E5%88%9D%E5%AD%A6%E8%80%85%E8%A7%86%E8%A7%92" class="hash-link" aria-label="写作主线与初学者视角的直接链接" title="写作主线与初学者视角的直接链接" translate="no">​</a></h2>
-<ul>
-<li class="">先判断主要类型：总结型整理已验证知识的关系；问题导向型回答具体障碍或任务；探索型调查暂不确定的解释。三者都从真实而具体的疑问开始，交代背景、环境和为什么值得解决。推荐顺序是问题或目标 → 最小可运行或可观察示例 → 求证与解释 → 有边界的回答 → 未解决问题；依类型调整，不拼接三套模板。</li>
-<li class="">作者处于 LLM、Agent 初学阶段。只依赖前文已经建立或本篇已求证的概念；首次使用术语先解释，API、命令、协议名称保留英文并说明作用。可假定读者具备基础 Web 开发知识，不能假定读者读过系列其他文章。</li>
-<li class="">回指确有帮助的旧文时，写“前面”或“前文”，链接文字用“前文：文章标题”；不要用“第 N 篇”。这条<strong>只规范发生回指时的写法</strong>，不要求每篇回顾上一篇。</li>
-<li class="">个人工作笔记从问题、操作或可见现象切入，不写解释文章安排的元叙述。缺乏作者经历的证据时，不编造猜想、错误尝试、早年阅读、实验或情绪；避免“众所周知”“显然”和事后全知视角。论文或技术史只有直接帮助当前问题时才引入。</li>
-<li class="">讲功能按读者遇到问题的顺序展开：用户要做什么 → 需要哪些数据和接口 → 怎样保存、读取、更新 → 状态与失败。先交代原有流程及其遇到的障碍，再引入解决办法；每个表、字段、指针或机制先交代用途，不按源码模块逐个平铺。正文用流程和具体例子解释，不让读懂文章依赖方法名；必要时再给简短代码和固定版本链接。多个各带用途的字段改用列表。</li>
-<li class="">面向不了解项目的读者写正文：只保留影响主要结论或证据真实性的限制，集中在相关位置简短交代，避免每段反复补充边界。项目内部的调试报错、交付阶段和排障流水账，除非直接帮助解释读者的问题，否则不写进正文；仍须诚实说明模拟数据或未验证范围。</li>
-<li class="">写清关键求证步骤、版本、命令、输入、输出及资料来源；只保留有价值的失败尝试。事实、文档建议、推断、示意和开放问题分别标注；观察到行为不等于证明内部原因或跨网关普遍规律。结论只回答开头的问题，不扩大到证据之外。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="代码与跨仓库证据">代码与跨仓库证据<a href="https://xpzero.github.io/blog/articles/AGENTS#%E4%BB%A3%E7%A0%81%E4%B8%8E%E8%B7%A8%E4%BB%93%E5%BA%93%E8%AF%81%E6%8D%AE" class="hash-link" aria-label="代码与跨仓库证据的直接链接" title="代码与跨仓库证据的直接链接" translate="no">​</a></h2>
-<ul>
-<li class="">修改已发布 <code>build-agent-*</code> 文章的代码、输出或行为前，核对文章指向的 <code>xpzero/demo-agent</code> 固定提交，若本地有 <code>../demo-agent</code> 也核对；除用户明确要求外只读。保留作为证据的永久链接，位置变化时更新并说明版本边界。</li>
-<li class="">尚未提交的跨仓库实现不能先于证据推送文章；应先提交实现，再补固定提交链接。外部项目机制首次进入主线时说明归属及实际借用的术语、结构或语义；区分本地重写之处。源码链接固定到核对过的提交，当前用法可引官方文档。</li>
-<li class="">代码、命令和配置应可运行，不能运行的标为伪代码；摘录省略上下文时标明。术语、字段、接口、图与输出须与引用版本一致。服务商或网关特有行为注明条件，不把兼容 OpenAI 端点理解为行为相同。操作命令说明失败方式、取舍与必要的回滚步骤。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="真实环境与证据边界">真实环境与证据边界<a href="https://xpzero.github.io/blog/articles/AGENTS#%E7%9C%9F%E5%AE%9E%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%AF%81%E6%8D%AE%E8%BE%B9%E7%95%8C" class="hash-link" aria-label="真实环境与证据边界的直接链接" title="真实环境与证据边界的直接链接" translate="no">​</a></h2>
-<ul>
-<li class="">基于真实项目代码的功能、启动方式和运行结果，<strong>先</strong>在对应版本的真实环境中验证，<strong>再</strong>写作和下结论。使用项目文档规定的配置、依赖、入口与启动命令，覆盖文中用户操作。独立测试库和无敏感演示数据可经正常配置接入。</li>
-<li class="">若正常启动失败、环境缺失或关键流程未通过，记录错误及其对正文结论的影响，通常保持 <code>draft: true</code>，待修复后再验证。用户明确要求发布时，可以收窄正文到已核实的代码流程与演示页面，并就近说明未验证的功能效果；不得将演示结论写成真实模型运行结果。不能另建临时 Harness、换应用入口、注入服务或模型响应、拦截请求绕过失败，然后把页面写成正常运行证据。不要为了验证调用付费 API 或泄露凭据。</li>
-<li class="">功能截图来自上述真实运行过程。涉及模型或外部服务的功能结论，须使用实际配置的服务取得真实响应；mock、fixture、预览或注入数据只能明确标为测试或演示，不能填补端到端证据缺口。截图附近说明可见状态和环境；保留对应提交、依赖版本、配置、启动命令、输入与输出以便复现，敏感信息可遮盖但不能改结果。</li>
-<li class="">单元测试、集成测试、构建、真实用户流程分别报告通过、失败或跳过以及各自范围。截图只证明特定 UI 状态；模拟模型事件不能证明真实模型会选择工具；真实页面或数据库不能单独证明整个功能可用。页面报错、后端成功但前端没展示等须在相关结论附近写明。</li>
-<li class="">涉及审批、恢复、并发等状态机制时，先定义状态由谁产生、说明什么；区分权限结果、用户决定与执行结果。按真实时序交代持久化边界、副作用、连接结束与恢复事实来源；不同执行顺序不能混为一谈。已知竞争窗口、配置加载时机与恢复限制放在相关边界处。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="呈现与检查">呈现与检查<a href="https://xpzero.github.io/blog/articles/AGENTS#%E5%91%88%E7%8E%B0%E4%B8%8E%E6%A3%80%E6%9F%A5" class="hash-link" aria-label="呈现与检查的直接链接" title="呈现与检查的直接链接" translate="no">​</a></h2>
-<ul>
-<li class="">Agent 系列新文章按用户要求提供与问题相关的实际代码、截图及图文解释；截图须符合上面的真实环境与证据边界。若无法取得合格的功能截图，写明验证缺口，按上面的发布条件决定是否保持草稿；不能用模拟画面填补证据。图文并茂不等于每节都配图。</li>
-<li class="">根据关系选择表达：知识层级可用 MarkMap，流程或时序可用 Mermaid 或可校对的插图，逐项差异用表格，短内容用正文。先检查示例、表格和截图是否已解释清楚，再决定是否加图；图文对应、箭头和中文标签准确。<strong>不强制每节配图或使用固定画图工具</strong>；图不是目录的翻版，主结论和证据不能只放在图或折叠区。确有求证前后认识变化才画两种认识，不虚构初始错误。</li>
-<li class="">使用 Docusaurus 内置语法或组件前查 <code>../guides/docusaurus-writing.md</code>，有疑问再核对当前版本的官方文档和项目配置。已有自定义 MDX 组件见 <code>src/theme/MDXComponents.js</code>；使用 MarkMap 时复用 <code>src/components/MarkMap/</code> 并本地导入。</li>
-<li class="">标题层级连续；长期引用才加显式 ID，使用 MDX 注释式 <code>## 标题 {/* #stable-id */}</code>，同页唯一。功能图、代码和截图各有正文解释，保持版本和场景一致。校对图片路径、替代文本、内部链接、图形渲染和构建警告；验证和部署规则见根目录 <code>AGENTS.md</code>。</li>
-</ul>]]></content:encoded>
-        </item>
         <item>
             <title><![CDATA[会话越来越长，Agent 还记得什么？]]></title>
             <link>https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability</link>
@@ -2307,6 +2261,69 @@
 <li class=""><a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer" class="">GQA: Training Generalized Multi-Query Transformer</a></li>
 <li class=""><a href="https://platform.openai.com/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer" class="">OpenAI Prompt Caching</a></li>
 <li class=""><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer" class="">vLLM: PagedAttention（KV Cache 的工程管理）</a></li>
+</ul>]]></content:encoded>
+            <category>AI</category>
+            <category>LLM</category>
+        </item>
+        <item>
+            <title><![CDATA[上下文窗口：长了为什么崩，中间为什么被漏掉]]></title>
+            <link>https://xpzero.github.io/blog/articles/llm-learning/context-window</link>
+            <guid>https://xpzero.github.io/blog/articles/llm-learning/context-window</guid>
+            <pubDate>Thu, 06 Aug 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[把一份长文档丢给模型让它回答问题，常见两种翻车：要么直接报错"超出长度限制"，要么答是答了，但引用的全是文档开头和结尾的内容，中间部分像没读过一样。]]></description>
+            <content:encoded><![CDATA[<p>把一份长文档丢给模型让它回答问题，常见两种翻车：要么直接报错"超出长度限制"，要么答是答了，但引用的全是文档开头和结尾的内容，中间部分像没读过一样。</p>
+<p>这两种现象对应上下文窗口的两个层面：<strong>硬上限</strong>（超过直接拒绝）和<strong>软失效</strong>（没超限但用不好）。前面几篇的知识刚好够把两者都解释清。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口里装的比你以为的多">窗口里装的比你以为的多<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%AA%97%E5%8F%A3%E9%87%8C%E8%A3%85%E7%9A%84%E6%AF%94%E4%BD%A0%E4%BB%A5%E4%B8%BA%E7%9A%84%E5%A4%9A" class="hash-link" aria-label="窗口里装的比你以为的多的直接链接" title="窗口里装的比你以为的多的直接链接" translate="no">​</a></h2>
+<p>上下文窗口（context window）是模型单次能处理的 token 总量上限——注意是<strong>总量</strong>，不是"你能发多少"。一个标称 128k 的窗口，实际是几方分的：</p>
+<!-- -->
+<ul>
+<li class=""><strong>系统提示</strong>：<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/token">第一篇</a>实测过，只发 1 个字符，服务端算了 4387 个 token——隐藏提示先占掉一块。</li>
+<li class=""><strong>历史对话</strong>：模型无状态，多轮对话靠每次重发全部历史，聊得越久这块越大。</li>
+<li class=""><strong>模型输出</strong>：生成的内容也在窗口里。输入塞得太满，留给回答的空间就不够，可能话说一半被截断。</li>
+</ul>
+<p>硬上限的报错好处理（收到错误码就截断或分段）；麻烦的是下面这种。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口没满能力先掉了">窗口没满，能力先掉了<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%AA%97%E5%8F%A3%E6%B2%A1%E6%BB%A1%E8%83%BD%E5%8A%9B%E5%85%88%E6%8E%89%E4%BA%86" class="hash-link" aria-label="窗口没满，能力先掉了的直接链接" title="窗口没满，能力先掉了的直接链接" translate="no">​</a></h2>
+<p>实验研究发现一个稳定现象。测法很直白：把一条关键信息（比如"某人的账号是 XXX"）埋进一堆无关文档里，位置从头到尾挪动，每个位置都问模型同一个问题，看它答不答得出。结果按位置画出来是一条 <strong>U 形曲线</strong>：</p>
+<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">回答准确率</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  高 ┤ ●                                       ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     │   ●                                   ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     │     ●                               ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  低 ┤        ● ● ● ● ● ● ● ● ● ● ● ● ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     └─────────────────────────────────────────</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">       开头        ← 关键信息的位置 →        结尾</span><br></div></code></pre></div></div>
+<p>放在<strong>开头或结尾</strong>，模型找得到；放在<strong>中间</strong>，准确率明显下滑。这个结果以论文标题出名：<strong>Lost in the Middle</strong>（迷失在中间，链接见文末）。更扎心的是论文的另一个发现：最差的位置上，部分模型的表现甚至不如<strong>不给文档、闭卷回答</strong>——塞了一堆材料，反而帮了倒忙。</p>
+<p>为什么会这样？前几篇的机制能给出几条线索（注意：这是研究给出的部分解释，不是定论）：</p>
+<ul>
+<li class=""><strong>注意力是稀释的。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>说过，每个位置对前文所有 token 分配权重、总和为 1。前文 500 个 token 时每个平均能分到不少；50000 个 token 时，同样的注意力要摊得极薄，中间部分的信号容易被淹没。</li>
+<li class=""><strong>训练数据的偏置。</strong> 训练语料里，关键信息天然多出现在开头（标题、摘要）和结尾（结论）；训练时见得少的模式，用的时候就弱。</li>
+<li class=""><strong>位置编码的外推。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/position">第五篇</a>提过，不少模型的长窗口是靠 RoPE 外推技巧撑出来的，训练时没真见过那么长的距离，远距离的注意力质量本身就打折。</li>
+</ul>
+<p>所以"支持 128k"和"128k 里每个位置都同样好用"是两回事。宣传页写前者，你的使用体验取决于后者。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="长对话为什么会失忆">长对话为什么会"失忆"<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E9%95%BF%E5%AF%B9%E8%AF%9D%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%A4%B1%E5%BF%86" class="hash-link" aria-label="长对话为什么会&quot;失忆&quot;的直接链接" title="长对话为什么会&quot;失忆&quot;的直接链接" translate="no">​</a></h2>
+<p>现在可以把常见的"聊久了忘事"拆成三种不同的病因：</p>
+<ol>
+<li class=""><strong>真被截断了。</strong> 历史超过窗口，应用只能丢弃最早的消息（或做摘要压缩），被丢掉的内容模型是真的看不到了。
+典型场景：聊了一下午的会话里问"我们最开始定的方案是什么"，它给出一个从没出现过的答案——开头的消息早就不在发送的历史里了。</li>
+<li class=""><strong>迷失在中间。</strong> 历史都在窗口内，但你几十轮前说的那句关键设定，正好落在 U 形曲线的谷底。
+典型场景：第 3 轮说过"回答都用英文"，第 40 轮它突然改回中文；把设定重新说一遍立刻恢复——信息在，只是没被"看"到。</li>
+<li class=""><strong>注意力被带偏。</strong> 上下文里塞了大量无关内容（比如粘贴的长日志），相关信息的权重被稀释。
+典型场景：贴了 500 行日志让它找报错原因，它揪着日志里无关紧要的一行大做文章，反而没注意你在开头写的复现步骤。</li>
+</ol>
+<p>三种病因对策不同：第 1 种要控制历史长度、重要设定重复申明；第 2、3 种的通用解法是<strong>别把窗口当垃圾桶</strong>——上下文越干净、关键信息越靠前或靠后，效果越稳。分不清是哪种时有个简易鉴别法：<strong>新开一个对话，只带上关键信息重问一遍</strong>——恢复正常就是 2 或 3（信息被淹没），依旧答错才可能是模型本身不会。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="为什么窗口不能无限大">为什么窗口不能无限大<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%AA%97%E5%8F%A3%E4%B8%8D%E8%83%BD%E6%97%A0%E9%99%90%E5%A4%A7" class="hash-link" aria-label="为什么窗口不能无限大的直接链接" title="为什么窗口不能无限大的直接链接" translate="no">​</a></h2>
+<p>窗口大小不是厂商抠门，是三条成本曲线压着：</p>
+<ul>
+<li class=""><strong>计算量随长度平方涨。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>提过 n 个 token 有 n×n 对注意力打分：窗口从 4k 到 128k，长 32 倍，这部分计算涨约 1000 倍。</li>
+<li class=""><strong>KV Cache 随长度线性涨。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache">第七篇</a>算过量级，长上下文直接吃显存。</li>
+<li class=""><strong>数据难。</strong> 几十万 token 且前后真有依赖关系的训练样本本来就稀少。</li>
+</ul>
+<p>理解了成本，也就理解了另一件事：<strong>把窗口用满不等于用好</strong>。费用按 token 计，长输入的预填充又慢（首字延迟涨），效果还可能掉——三头亏。先做减法（删无关内容），再考虑检索（只把相关段落塞进上下文，这就是 RAG 的动机，属于应用层话题，见 <a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">Agent 系列</a>）。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="用的时候真正要注意的">用的时候真正要注意的<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%94%A8%E7%9A%84%E6%97%B6%E5%80%99%E7%9C%9F%E6%AD%A3%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84" class="hash-link" aria-label="用的时候真正要注意的的直接链接" title="用的时候真正要注意的的直接链接" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>给长文档任务做位置设计</strong>：指令和关键约束放开头或结尾，别埋在材料中间；材料很长时，问题重复一遍放在末尾是常见有效的土办法。</li>
+<li class=""><strong>窗口预算要留出口</strong>：预估输出长度，别让输入把窗口顶满。</li>
+<li class=""><strong>截断策略自己定</strong>：靠服务端报错兜底不如自己数着 token 截（<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/token">第一篇</a>讲过怎么数），至少能决定丢哪段，而不是被动丢最早的。</li>
+<li class=""><strong>长上下文能力要实测</strong>：不同模型在同样长度下的表现差异很大，拿自己的真实文档做几次"把关键句藏在不同位置"的测试，比看宣传数字可靠。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
+<ul>
+<li class=""><a href="https://arxiv.org/abs/2307.03172" target="_blank" rel="noopener noreferrer" class="">Lost in the Middle: How Language Models Use Long Contexts</a></li>
+<li class=""><a href="https://platform.openai.com/docs/models" target="_blank" rel="noopener noreferrer" class="">OpenAI：模型上下文窗口说明</a></li>
+<li class=""><a href="https://github.com/gkamradt/LLMTest_NeedleInAHaystack" target="_blank" rel="noopener noreferrer" class="">Needle In A Haystack 测试（长上下文检索能力评测）</a></li>
 </ul>]]></content:encoded>
             <category>AI</category>
             <category>LLM</category>
