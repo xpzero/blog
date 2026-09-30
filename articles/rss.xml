@@ -4,11 +4,175 @@
         <title>柯寒的备忘录</title>
         <link>https://xpzero.github.io/blog/articles</link>
         <description>关于前端、AI、Agent 与工程实践的个人技术文章。</description>
-        <lastBuildDate>Fri, 25 Sep 2026 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Tue, 29 Sep 2026 03:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>zh-CN</language>
         <copyright>Copyright © 2023-2026 Kehan.</copyright>
+        <item>
+            <title><![CDATA[Agent 任务恢复：刷新续看、重启核实与安全继续]]></title>
+            <link>https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery</link>
+            <guid>https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery</guid>
+            <pubDate>Tue, 29 Sep 2026 03:00:00 GMT</pubDate>
+            <description><![CDATA[区分刷新续看、进程重启核实与用户继续任务：用持久化事实、只读恢复流和经过后端校验的模型建议避免重复执行。]]></description>
+            <content:encoded><![CDATA[<p>"恢复"这个词在 Agent 应用里至少覆盖三个完全不同的场景：</p>
+<ol>
+<li class="">Agent 正在生成回答，用户刷新了网页——想接着<strong>看</strong>；</li>
+<li class="">订单请求刚提交，后端进程崩溃重启——需要<strong>核实</strong>那个操作到底成没成功；</li>
+<li class="">任务停止之后，用户说"继续"——希望<strong>推进</strong>下一步。</li>
+</ol>
+<p>如果把这三种都实现成"重新发一次聊天请求"，后果很直观：页面收到重复的回答，业务系统收到第二笔订单，或者模型在不知道前面执行过什么的情况下重新规划。正确的做法是先把它们分开，再为每一种找到对应的事实来源。本文介绍一套这样的恢复机制，承接<a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry">前文：Agent 运行中断与有限重试：停止、部分回复与模型降级</a>建立的运行（Run）概念。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="先分清要恢复的对象">先分清要恢复的对象<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E5%85%88%E5%88%86%E6%B8%85%E8%A6%81%E6%81%A2%E5%A4%8D%E7%9A%84%E5%AF%B9%E8%B1%A1" class="hash-link" aria-label="先分清要恢复的对象的直接链接" title="先分清要恢复的对象的直接链接" translate="no">​</a></h2>
+<p>恢复机制依赖几个持久化对象，各自回答不同的问题：</p>
+<ul>
+<li class=""><strong>Session / Message</strong>：哪个会话、说过什么话。</li>
+<li class=""><strong>Run</strong>：一条用户消息的完整处理过程（前文已建立）。它有始有终。</li>
+<li class=""><strong>Task</strong>：用户要达成的目标，例如"确认 A、B、C 三笔订单"。它有目标版本，可以跨越多次 Run。</li>
+<li class=""><strong>Operation</strong>：一次具体操作的执行事实，有稳定 ID、状态和已确认结果，指向所属的 Task 和发起它的 Run。</li>
+</ul>
+<p>它们不是严格的树状嵌套——Task 属于会话，通过关联表连接多个 Run；Operation 同时关联 Task 和 Run：</p>
+<!-- -->
+<p>之所以要拆这么细，是因为<strong>不同对象的"完成"互不蕴含</strong>：Run 结束不代表 Task 完成；操作确认成功，也不代表崩溃前的模型答复完整。页面因此同时展示消息、运行结论和任务操作进度，而不是把它们揉成一个"成功"标记。</p>
+<p>回到开头的三个场景，后端各自要做的事：</p>
+<table><thead><tr><th>用户动作或故障</th><th>后端应做什么</th><th>会不会自动请求模型</th></tr></thead><tbody><tr><td>刷新、切换后切回</td><td>读取历史，订阅原 Run 的事件和事实</td><td>不会</td></tr><tr><td>后端进程重启</td><td>接管遗留 Run，查询原业务操作并收尾</td><td>不会</td></tr><tr><td>Run 已结束后用户说"继续"</td><td>新消息创建新 Run，基于任务事实判断下一步</td><td>会，但不能直接重放旧操作</td></tr></tbody></table>
+<p>前两种都不请求模型——这是整套机制的底线：<strong>恢复只读取和核实事实，绝不自动重发任何有副作用的动作</strong>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="刷新之后把正在执行的流接回来">刷新之后：把正在执行的流接回来<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E5%88%B7%E6%96%B0%E4%B9%8B%E5%90%8E%E6%8A%8A%E6%AD%A3%E5%9C%A8%E6%89%A7%E8%A1%8C%E7%9A%84%E6%B5%81%E6%8E%A5%E5%9B%9E%E6%9D%A5" class="hash-link" aria-label="刷新之后：把正在执行的流接�回来的直接链接" title="刷新之后：把正在执行的流接回来的直接链接" translate="no">​</a></h2>
+<p>前文讲过，工作线程在后端独立执行，网页刷新杀不死的只是观看连接。刷新之后要做的，是把这条连接重新接上正在发生的执行：</p>
+<!-- -->
+<p>流程是：网页先加载历史；如果会话仍被运行占用（不能发送），就连接恢复接口 <code>GET /api/sessions/{id}/resume</code>。这是一个<strong>只读传输</strong>——不创建 Run，不重发工具，更不会重发用户消息。</p>
+<p>恢复接口先发一个快照事件 <code>resume_snapshot</code>，包含四项内容：</p>
+<ul>
+<li class=""><code>history</code>：消息、会话指针、能否发送、任务进度；</li>
+<li class=""><code>user_message_id</code>：这次恢复对应哪个用户轮次；</li>
+<li class=""><code>replay</code>：能否按事件缓存重新展示这一轮的输出。</li>
+</ul>
+<p><code>replay</code> 是关键分岔。逐字生成的体验要恢复，靠的是<strong>进程内的事件缓存</strong>：运行执行时，后端把发给浏览器的每个事件同时存进一个内存缓存（默认上限 4096 个事件、8 MiB）。刷新后的新连接从这个缓存按序回放，再实时跟随后续事件——用户看到的就像从未离开。</p>
+<p>实际运行中，生成一篇长文的中途刷新页面，恢复流在半秒内接管：已生成的正文从缓存回放，新内容继续实时跟随，页面同时标明会话仍在处理、输入框保持锁定：</p>
+<p><img decoding="async" loading="lazy" alt="生成中刷新：恢复流回放已生成的正文并继续跟随，会话保持处理状态" src="https://xpzero.github.io/blog/assets/images/resume-mid-stream-recovered-30b01f00e7c45cc8def8ccd58ce91fb9.png" width="1280" height="577" class="img_rDMc"></p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="回放之前为什么要清掉这一轮的展示">回放之前为什么要清掉这一轮的展示<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E5%9B%9E%E6%94%BE%E4%B9%8B%E5%89%8D%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%EF%BF%BD%E6%B8%85%E6%8E%89%E8%BF%99%E4%B8%80%E8%BD%AE%E7%9A%84%E5%B1%95%E7%A4%BA" class="hash-link" aria-label="回放之前为什么要清掉这一轮的展示的直接链接" title="回放之前为什么要清掉这一轮的展示的直接链接" translate="no">​</a></h3>
+<p>历史接口返回的数据里，可能已经包含"工具执行前的文字"和部分助手正文。如果前端在旧内容上直接追加缓存事件，同一批 <code>text_delta</code> 会出现两遍。所以 <code>replay=true</code> 时，前端先保留用户消息、重建这一轮的助手展示区，再按事件原顺序回放：文字 → 工具调用 → 工具结果 → 后续文字，结束后把数据库 ID 和时间戳校准回去。</p>
+<p><code>replay=false</code> 时（缓存不可用，比如缓存超限被清空、或者进程重启过），只能承诺展示<strong>持久化下来的事实</strong>：保存的半段正文、已确认的操作状态。这时不能因为某个工具卡片缺失就断定"工具没执行过"——未知就是未知。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="缓存的边界">缓存的边界<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E7%BC%93%E5%AD%98%E7%9A%84%E8%BE%B9%E7%95%8C" class="hash-link" aria-label="缓存的边界的直接链接" title="缓存的边界的直接链接" translate="no">​</a></h3>
+<p>内存缓存是体验优化，不是可靠性承诺，它的边界都做了显式处理：</p>
+<ul>
+<li class=""><strong>容量</strong>：超过事件数或字节数上限，精确回放被取消，缓存清空，恢复退化为事实快照；</li>
+<li class=""><strong>订阅数</strong>：一次执行最多 8 个恢复订阅（防止反复刷新占住内存），超出的连接收到 429；每个订阅有独立游标，互不干扰；</li>
+<li class=""><strong>断点续传</strong>：缓存事件的 SSE <code>id</code> 用 <code>用户消息ID:序号</code> 编码（如 <code>17:23</code>），支持标准 <code>Last-Event-ID</code> 从断点继续；游标失效（序号超范围、轮次不匹配）就重新给快照，不猜；</li>
+<li class=""><strong>进程</strong>：缓存只在单进程内成立。重启后内存消失，恢复自动退化为事实快照——功能降级，不出错。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="流结束与会话解锁是两件事">流结束与会话解锁是两件事<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E6%B5%81%E7%BB%93%E6%9D%9F%E4%B8%8E%E4%BC%9A%E8%AF%9D%E8%A7%A3%E9%94%81%E6%98%AF%E4%B8%A4%E4%BB%B6%E4%BA%8B" class="hash-link" aria-label="流结束与会话解锁是两件事的直接链接" title="流结束与会话解锁是两件事的直接链接" translate="no">​</a></h3>
+<p>恢复流里可能收到 <code>done</code> 或 <code>error</code>——它们只是发生过的事件，不代表恢复可以结束：Run 可能还在 <code>finishing</code>，后端还在核实业务结果。恢复接口会跟随到运行进入终态、事件排空，才发出 <code>stream_end</code>。前端收到后再读一次历史，校准消息和发送权限。恢复连接失败时显示"连接中断，请刷新重试"，不自动无限重连——更不会偷偷重发聊天请求。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="请求发出去了没有pending-标记">请求发出去了没有：pending 标记<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E8%AF%B7%E6%B1%82%E5%8F%91%E5%87%BA%E5%8E%BB%E4%BA%86%E6%B2%A1%E6%9C%89pending-%E6%A0%87%E8%AE%B0" class="hash-link" aria-label="请求发出去了没有：pending 标记的直接链接" title="请求发出去了没有：pending 标记的直接链接" translate="no">​</a></h2>
+<p>还有一个更早的裂缝：用户点发送的一瞬间刷新了，这条消息到底发出去没有？前端在发送时把会话 ID 和 pending 标记写进 <code>sessionStorage</code>，刷新后按两种情况处理：</p>
+<ol>
+<li class=""><strong>请求还没到后端</strong>：pending 会话的历史返回 404，前端清掉临时标记，回到可发送状态，不重发原消息；</li>
+<li class=""><strong>后端已保存消息、响应还没回来</strong>：相同 ID 的历史存在，前端接回原 Run，拿到可靠消息 ID 后清除 pending。</li>
+</ol>
+<p>已建立的会话返回 404 时显示加载失败，而不是当成空白新会话——那会让用户以为历史丢了。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="进程重启后先核实不补跑">进程重启后：先核实，不补跑<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E8%BF%9B%E7%A8%8B%E9%87%8D%E5%90%AF%E5%90%8E%E5%85%88%E6%A0%B8%E5%AE%9E%E4%B8%8D%E8%A1%A5%E8%B7%91" class="hash-link" aria-label="进程重启后：先核实，不补跑的直接链接" title="进程重启后：先核实，不补跑的直接链接" translate="no">​</a></h2>
+<p>最难的一种恢复：业务请求已经提交给外部系统，回执还没写进数据库，进程崩溃了。此时本地没有任何成功记录，但**"本地没有记录"推不出"业务没有执行"**。</p>
+<p>这套机制的做法是在发起任何业务请求<strong>之前</strong>，先在数据库登记一个 Operation，状态标为 <code>maybe_submitted</code>——"已启动，结果未知"。状态机表达的事实是：</p>
+<table><thead><tr><th>状态</th><th>含义</th></tr></thead><tbody><tr><td><code>maybe_submitted</code></td><td>启动登记已落库，是否实际送达不确定</td></tr><tr><td><code>processing</code></td><td>业务已受理，尚无最终结果</td></tr><tr><td><code>unconfirmed</code></td><td>查询未能给出可靠定论</td></tr><tr><td><code>succeeded</code> / <code>failed</code> / <code>cancelled</code></td><td>业务证据确认的最终结果</td></tr></tbody></table>
+<p>注意只有拿到<strong>业务证据</strong>（查询回执、对账结果）才能进入终态。运行超时不能把未知改成失败，消息里的半段回答也不能充当成功证据。</p>
+<p>后端启动时（FastAPI 的 <code>lifespan</code> 钩子），把上次遗留的 <code>running</code> 状态 Run 转为 <code>finishing</code> 并记录原因，然后启动一个后台线程逐个<strong>查询</strong>这些遗留操作——只查，不重新提交，不请求模型。查询有结果就落库并释放会话；持续无法确认的，等到原 Run 的截止时间按 <code>timed_out</code> 收尾，未知保持未知。</p>
+<p>这里有个反直觉但重要的决定：崩溃前模型答复没写完整时，哪怕操作已核实成功，Run 仍以 <code>failed</code>（进程丢失）结束。<strong>业务成功和回答完整是两件事</strong>，不能互相顶替——用户需要知道"订单成功了，但当时的说明文字丢了"，而不是一个含混的绿色对勾。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="用户说继续新的一轮判断">用户说"继续"：新的一轮判断<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E7%94%A8%E6%88%B7%E8%AF%B4%E7%BB%A7%E7%BB%AD%E6%96%B0%E7%9A%84%E4%B8%80%E8%BD%AE%E5%88%A4%E6%96%AD" class="hash-link" aria-label="用户说&quot;继续&quot;：新的一轮判断的直接链接" title="用户说&quot;继续&quot;：新的一轮判断的直接链接" translate="no">​</a></h2>
+<p>前两类恢复都不碰模型。只有用户明确发来新消息（"继续"、"现在到哪了"、"改成确认两笔"），才创建新的 Run。但此时模型对"接下来该做什么"的判断，不能建立在聊天记录的印象上，而要建立在任务事实上。</p>
+<p>会话已有任务事实时，后端把任务、目标版本、全部操作状态、待确认问题和已批准步骤组成快照，连同恢复提示词交给模型。模型不再自由发挥，而是通过一个专用工具 <code>recovery_suggestion</code> 提交结构化建议：意图、动作、引用哪些操作、需要执行时还带步骤和参数。</p>
+<!-- -->
+<p>两个设计值得展开。</p>
+<p><strong>后端为什么要在执行前重新读库校验</strong>：模型思考的几秒里状态可能已经变了——原操作刚被核实成功，或目标版本被修改。模型建议里声称的状态永远不能覆盖数据库事实；引用的操作不存在、版本对不上，建议直接作废。</p>
+<p><strong>模型建议不产生授权</strong>。一个步骤能不能执行，取决于它是否经过用户的显式批准（<code>planned_steps.approved</code>，来自编排层的批准流程），工具和参数是否与批准一致，依赖是否成功。模型的"建议执行"只是提议。此外，同一任务步骤只允许登记一个 Operation：已有可靠结果的直接复用，已尝试未知的去查询——不能用一个新的调用 ID 绕开这个限制重跑一遍。</p>
+<p>恢复模式下，最终答复由后端根据校验结果和业务证据拼装，不直接展示模型自由生成的文字——用户看到的结论必须能追溯到事实。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="修改目标要有显式确认">修改目标要有显式确认<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E4%BF%AE%E6%94%B9%E7%9B%AE%E6%A0%87%E8%A6%81%E6%9C%89%E6%98%BE%E5%BC%8F%E7%A1%AE%E8%AE%A4" class="hash-link" aria-label="修改目标要有显式确认的直接链接" title="修改目标要有显式确认的直接链接" translate="no">​</a></h3>
+<p>模型建议修改任务目标时，后端先存为待确认信息。用户必须发送一条以"确认修改目标为："开头、包含完整新目标的消息，且内容与建议一致，后端才更新目标并递增版本。旧操作和旧批准属于旧版本，新目标下需要重新评估。多这一步是因为目标变更会让已有工作作废或错位，值得一次显式的用户决定。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="小结">小结<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery#%E5%B0%8F%E7%BB%93" class="hash-link" aria-label="小结的直接链接" title="小结的直接链接" translate="no">​</a></h2>
+<p>把三种"恢复"分开后，每一种都有明确的事实来源和动作边界：</p>
+<ul>
+<li class=""><strong>刷新续看</strong>靠持久化消息 + 进程内事件缓存 + 只读恢复流，绝不重发请求；</li>
+<li class=""><strong>重启核实</strong>靠操作登记（<code>maybe_submitted</code>）+ 启动时的查询线程，只查不补跑；</li>
+<li class=""><strong>继续任务</strong>靠任务事实快照 + 后端校验的模型建议，复用已有结果，不重放旧操作。</li>
+</ul>
+<p>贯穿的原则和前文一致：恢复的对象是<strong>事实</strong>，不是<strong>动作</strong>。连接、进程、模型都可能中断，但已落库的事实不会——把"发生过什么"和"接下来做什么"分开回答，"恢复"才不会变成"重来一遍"。</p>
+<hr>
+<p><strong>版本与验证说明</strong>：本文机制依据 <code>demo-agent</code> 项目的实现（分支 <code>feat/interruption-retry-recovery</code>，基线提交 <a href="https://github.com/xpzero/demo-agent/commit/250b20f71916c988edea7e082938f64301b6674f" target="_blank" rel="noopener noreferrer" class=""><code>250b20f</code></a> 及其后的中断恢复改动）。文字输出与生成中刷新恢复经实际配置模型（<code>glm-5.3</code> / <code>glm-4.6</code>）验证；缓存超限、订阅容量、进程崩溃重启等场景通过受控脚本与本地演示业务适配器验证（真实写入 SQLite 后强制终止进程再重启核实），未连接真实订单或支付平台。</p>]]></content:encoded>
+            <category>AI</category>
+            <category>LLM</category>
+            <category>Agent</category>
+            <category>Reliability</category>
+        </item>
+        <item>
+            <title><![CDATA[Agent 运行中断与有限重试：停止、部分回复与模型降级]]></title>
+            <link>https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry</link>
+            <guid>https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry</guid>
+            <pubDate>Tue, 29 Sep 2026 02:00:00 GMT</pubDate>
+            <description><![CDATA[停止请求如何持久化，部分回复如何保留，模型失败何时可以重试或降级，以及为什么连接结束不等于运行结束。]]></description>
+            <content:encoded><![CDATA[<p>一个能调用工具的流式 Agent 运行起来之后，很快会遇到三个绕不开的问题：</p>
+<ol>
+<li class="">回答已经跑偏，用户点击停止——此时模型还在生成，工具可能马上要执行，后端应该做什么？</li>
+<li class="">模型服务返回限流或临时错误——直接把错误抛给用户，还是悄悄重试？重试到什么时候？</li>
+<li class="">生成到一半连接断了——已经生成的那半段回答，是丢了重来，还是想办法保住？</li>
+</ol>
+<p>这三个问题的共同点是：<strong>浏览器的连接只是观看执行的窗口，不是执行本身</strong>。断开连接、点击停止、服务报错，都不会让已经发生的事实消失。本文介绍一套处理这些情况的后端机制：给一次消息处理划定边界，把停止意图和部分回复持久化，对模型失败做有限重试和降级。</p>
+<p>例子来自一个用 Python FastAPI 后端、OpenAI SDK 流式接口、SSE 向网页推送事件的 Agent 项目。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="一次消息的处理是一个运行">一次消息的处理是一个运行<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E4%B8%80%E6%AC%A1%E6%B6%88%E6%81%AF%E7%9A%84%E5%A4%84%E7%90%86%E6%98%AF%E4%B8%80%E4%B8%AA%E8%BF%90%E8%A1%8C" class="hash-link" aria-label="一次消息的处理是一个运行的直接链接" title="一次消息的处理是一个运行的直接链接" translate="no">​</a></h2>
+<p>用户发一条消息，后端往往要请求模型好几次：模型先选择工具，工具执行完，再请求模型生成下一段回答。把这整段处理叫作一次<strong>运行（Run）</strong>：从后端接受用户消息开始，到这条消息完成、被停止或失败结束。</p>
+<p>运行和连接是两个生命周期。用户刷新页面或切换会话时，SSE 连接断了，但后端线程还在继续执行。反过来，模型流结束了，运行也未必结束——可能还有业务结果需要核实。把两者分开，是后面所有机制的基础：</p>
+<!-- -->
+<p>接受消息时，路由在一个数据库事务里保存用户消息、创建 Run 并占用会话；然后才启动工作线程。如果同一会话已有活跃运行，第二个聊天请求会收到 HTTP 409。这个检查放在后端而不是只禁用页面的发送按钮，因为用户可能开两个页面同时提交。</p>
+<p>Run 有两个活跃状态：</p>
+<ul>
+<li class=""><code>running</code>：模型和工具还在处理这条消息。</li>
+<li class=""><code>finishing</code>：停止意图已登记，或模型处理已结束但还有业务结果待核实。</li>
+</ul>
+<p>终态有五种：<code>completed</code>、<code>stopped</code>、<code>failed</code>、<code>timed_out</code>、<code>limit_reached</code>。注意 <code>completed</code> 只表示"这条消息处理完毕"，不保证业务操作全部成功——业务结果要看操作记录（下一篇文章展开）。终态与释放会话在同一个收尾事务里落定；释放之后，会话才能接受下一条消息。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="停止是登记意图不是掐断线程">停止是登记意图，不是掐断线程<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E5%81%9C%E6%AD%A2%E6%98%AF%E7%99%BB%E8%AE%B0%E6%84%8F%E5%9B%BE%E4%B8%8D%E6%98%AF%E6%8E%90%E6%96%AD%E7%BA%BF%E7%A8%8B" class="hash-link" aria-label="停止是登记意图，不是掐断线程的直接链接" title="停止是登记意图，不是掐断线程的直接链接" translate="no">​</a></h2>
+<p>收到停止请求时，后端不能直接杀掉工作线程——正在写数据库的事务、执行到一半的工具都可能留下不一致的状态。可行的做法是<strong>协作式停止</strong>：</p>
+<ol>
+<li class="">停止接口先在数据库里持久化 <code>stop_requested</code> 标志；</li>
+<li class="">工作线程在安全边界上检查这个标志——读流 chunk 的间隙、每个工具执行前后、重试退避的等待中；</li>
+<li class="">检查到标志就抛出停止信号，由上层保存已有事实并收尾。</li>
+</ol>
+<div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_quZN">server/agent/loop.py（节选）</div><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">def</span><span class="token plain"> </span><span class="token function" style="color:#d73a49">_check_stop</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">should_stop</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> should_stop </span><span class="token keyword" style="color:#00009f">is</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">not</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">and</span><span class="token plain"> should_stop</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token keyword" style="color:#00009f">raise</span><span class="token plain"> RunStopped</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><br></div></code></pre></div></div>
+<p>这样能保证停止之后不再发起新的模型请求、不再启动新的工具，但<strong>不能瞬间打断</strong>一个已经阻塞的网络读取或正在执行的工具。只有当前流片段返回、工具执行完，线程才有机会看到标志。</p>
+<p>有一个竞争窗口值得注意：工具启动前要先检查"没有停止"，然后才登记执行——停止请求可能恰好插在这两步之间。解决办法是把停止标志、运行状态、截止时间和工具登记放到数据库的同一个原子判定点里检查，让"谁先取得启动资格"有确定的答案。</p>
+<p>但这只解决资格问题，不能撤销已经开始的副作用。文件已经覆盖，停止不会恢复旧文件；订单请求已经发出，停止也不能证明订单未创建。<strong>停止承诺的是"不再开始新动作"，不是"回到停止之前"</strong>。业务适配器支持取消时可以尝试取消，但结果仍要作为事实保存下来。</p>
+<p>因此，点击停止之后页面不会立刻解锁输入框。停止接口最多短暂等待收尾，然后返回 <code>ended</code> 或 <code>processing</code>；有待核实的业务操作时，会话继续保持占用，直到结果确认或截止时间耗尽。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="半截回答也要持久化">半截回答也要持久化<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E5%8D%8A%E6%88%AA%E5%9B%9E%E7%AD%94%E4%B9%9F%E8%A6%81%E6%8C%81%E4%B9%85%E5%8C%96" class="hash-link" aria-label="半截回答也要持久化的直接链接" title="半截回答也要持久化的直接链接" translate="no">​</a></h2>
+<p>如果生成的文字只存在网页内存里，停止或刷新之后就会消失。所以后端在收到每个 <code>text_delta</code> 事件时，先把它累积写入数据库的同一条助手消息，再把事件发给浏览器：</p>
+<div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_quZN">server/api/chat_stream.py（节选）</div><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> event</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">"type"</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">==</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">"text_delta"</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    text_parts</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">append</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">event</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string" style="color:#e3116c">"text"</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    assistant_message_id </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> database</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">upsert_partial_assistant</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">        run_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> session_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> user_message_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">""</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">join</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">text_parts</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">)</span><br></div></code></pre></div></div>
+<p>生成期间这条消息的状态是 <code>incomplete</code>；正常完成后转为 <code>finished</code>。被停止或中断时，它保持 <code>incomplete</code>，页面显示"回复未完成，已按中断时内容保存"。</p>
+<p>注意区分两个层次：<code>incomplete</code> 是<strong>消息</strong>状态，回答这段文字是否完整；<code>stopped</code> 是<strong>运行</strong>状态，这次处理为什么结束。半段回答能告诉用户"当时说到哪里了"，但不能证明任何业务操作成功——操作成功与否要看操作事实，这是<a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-task-recovery">下一篇文章</a>的主题。</p>
+<p>下面是实际运行中的效果：生成一篇长文的中途点击停止，页面保留了已生成的部分正文，并明确标注保存方式，而不是丢弃或假装完整：</p>
+<p><img decoding="async" loading="lazy" alt="生成中途点击停止：部分正文保留，并标注&amp;quot;回复未完成，已按中断时内容保存&amp;quot;" src="https://xpzero.github.io/blog/assets/images/interruption-partial-reply-saved-e2ccfbd0106dfb2148d40440d7796231.png" width="1280" height="577" class="img_rDMc"></p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="模型失败哪些能重试重试几次">模型失败：哪些能重试，重试几次<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E6%A8%A1%E5%9E%8B%E5%A4%B1%E8%B4%A5%E5%93%AA%E4%BA%9B%E8%83%BD%E9%87%8D%E8%AF%95%E9%87%8D%E8%AF%95%E5%87%A0%E6%AC%A1" class="hash-link" aria-label="模型失败：哪些能重试，重试几次的直接链接" title="模型失败：哪些能重试，重试几次的直接链接" translate="no">​</a></h2>
+<p>模型请求会失败：网络超时、HTTP 429 限流、5xx 服务错误，也可能是不必重试的 401、参数错误。重试策略要先回答两个问题：<strong>这是什么类型的失败</strong>，以及<strong>这次尝试已经产生了什么</strong>。</p>
+<p>第二个问题更关键。流式请求收到第一个 chunk 之后再断开，页面上可能已经显示了文字，模型可能已经开始生成工具调用参数。此时原样重发一次，用户会看到两份答案交错，半截的工具参数也可能与重试后的新参数冲突。所以重试要满足一个前提——<strong>本次尝试还没有产生任何可见输出</strong>：</p>
+<div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_quZN">server/agent/loop.py（节选）</div><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">except</span><span class="token plain"> Exception </span><span class="token keyword" style="color:#00009f">as</span><span class="token plain"> error</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token keyword" style="color:#00009f">if</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">emitted </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"> text_parts </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"> partial_tool_calls </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token keyword" style="color:#00009f">not</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">_retryable</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">error</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"> </span><span class="token builtin">isinstance</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">error</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> ModelRequestTimeout</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">or</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">            failures </span><span class="token operator" style="color:#393A34">+</span><span class="token plain"> </span><span class="token number" style="color:#36acaa">1</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">&gt;=</span><span class="token plain"> max_attempts</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token keyword" style="color:#00009f">raise</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    failures </span><span class="token operator" style="color:#393A34">+=</span><span class="token plain"> </span><span class="token number" style="color:#36acaa">1</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token comment" style="color:#999988;font-style:italic"># 在剩余预算内退避，再次尝试</span><br></div></code></pre></div></div>
+<p><code>emitted</code> 记录已发出的事件，<code>text_parts</code> 和 <code>partial_tool_calls</code> 记录已收到的正文或工具参数碎片——哪怕碎片还没聚齐、工具还没执行，也不能当作"什么都没发生"。按这个规则分类：</p>
+<table><thead><tr><th>失败类型</th><th>处理</th></tr></thead><tbody><tr><td>网络连接错误、请求超时</td><td>无可见输出且预算充足时重试</td></tr><tr><td>HTTP 429、5xx</td><td>同上，有限重试</td></tr><tr><td>401、403、请求参数错误</td><td>不可重试，结束本次处理并交代错误</td></tr><tr><td>已有可见文字或工具参数碎片后的流错误</td><td>不原样重试，保留部分事实</td></tr></tbody></table>
+<p>这是本地的防重复规则，不保证供应商那边没有处理或计费——它是为了页面不出现两份答案，不是为了省 token。</p>
+<p>实际运行中，这条规则的效果是：流在正文已经输出大半时超时，页面保留已生成的部分正文并如实展示错误，而不是从头重试让用户看到两份答案：</p>
+<p><img decoding="async" loading="lazy" alt="流中途超时：已生成的正文保留，错误如实展示，不重试" src="https://xpzero.github.io/blog/assets/images/interruption-stream-error-partial-kept-dbbe3a89f3003a944e130091c7689bb5.png" width="1280" height="577" class="img_rDMc"></p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="重试要有预算">重试要有预算<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E9%87%8D%E8%AF%95%E8%A6%81%E6%9C%89%E9%A2%84%E7%AE%97" class="hash-link" aria-label="重试要有预算的直接链接" title="重试要有预算的直接链接" translate="no">​</a></h3>
+<p>无限重试等于把故障变成雪崩。这套实现给了一次运行内明确的预算：</p>
+<table><thead><tr><th>预算</th><th>限制</th></tr></thead><tbody><tr><td>一次 Run 的总时限</td><td>300 秒</td></tr><tr><td>逻辑模型请求</td><td>最多 10 次</td></tr><tr><td>每个逻辑请求的实际尝试</td><td>最多 3 次</td></tr><tr><td>单次模型请求</td><td>60 秒，且不超过剩余 Run 时间</td></tr><tr><td>重试退避</td><td>0.25 秒起指数增长，封顶 1 秒</td></tr></tbody></table>
+<p>"逻辑请求"是一次生成需求，比如工具执行完之后向模型请求总结；"实际尝试"是它的失败重试。SDK 自带的重试被关掉，由 Agent 循环统一计数和控制，发送前把计数写入数据库。</p>
+<p>退避用的是固定的短指数序列，不解析服务方返回的 <code>Retry-After</code>。如果服务场景要求遵守对方的等待时间，需要额外实现，而且仍要受总时限约束。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="主备模型共用预算">主备模型共用预算<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E4%B8%BB%E5%A4%87%E6%A8%A1%E5%9E%8B%E5%85%B1%E7%94%A8%E9%A2%84%E7%AE%97" class="hash-link" aria-label="主备模型共用预算的直接链接" title="主备模型共用预算的直接链接" translate="no">​</a></h3>
+<p>配置备用模型后，前两次尝试用主模型，最后一次切换到备用模型。切换不重置尝试上限，也不延长时限——降级是预算内的补救，不是新的一轮。</p>
+<p>示例项目配置主模型 <code>glm-5.3</code>、备用模型 <code>glm-4.6</code>，都是启动时从配置读取的；验证时在主模型连续失败的场景下，第三次请求由备用模型完成，页面正常收到完整回答。有一个容易忽略的细节：备用模型自己也可能连接失败，这时候和主模型失败走同一条路径处理，而不是再换回主模型无限循环。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="连接结束不等于运行结束">连接结束不等于运行结束<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-interruption-retry#%E8%BF%9E%E6%8E%A5%E7%BB%93%E6%9D%9F%E4%B8%8D%E7%AD%89%E4%BA%8E%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9D%9F" class="hash-link" aria-label="连接结束不等于运行结束的直接链接" title="连接结束不等于运行结束的直接链接" translate="no">​</a></h2>
+<p>POST 聊天流里的 <code>done</code> 事件表示"回答已产生"，<code>error</code> 表示"发生错误"。但它们只描述了模型流的结局，不能证明业务核实也完成了——有待确认的操作存在时，模型流结束，Run 仍处于 <code>finishing</code>。</p>
+<p>所以前端刷新或重进会话时，不是看聊天流有没有结束，而是：先读历史；如果会话仍被占用（不能发送），就连接一个只读的恢复流，跟随运行直到它发出 <code>stream_end</code>——一个专门的终态信号，表示运行已落定、事件已排空。恢复流的机制（快照、事件回放、缓存边界）在下一篇文章展开。</p>
+<p>到这里可以回答开头的问题了。点击停止：后端持久化停止意图，在安全边界停止发起新动作，半截回答按中断时内容保存。模型限流：在无可见输出的前提下有限重试，预算耗尽前降级到备用模型。连接断开：执行仍在后端继续，事实都已落库，重连后按数据恢复展示。贯穿所有机制的是同一条原则——<strong>连接可以断，意图要落库，已发生的事实不能抹掉</strong>。</p>
+<hr>
+<p><strong>版本与验证说明</strong>：本文机制依据 <code>demo-agent</code> 项目的实现（分支 <code>feat/interruption-retry-recovery</code>，基线提交 <a href="https://github.com/xpzero/demo-agent/commit/250b20f71916c988edea7e082938f64301b6674f" target="_blank" rel="noopener noreferrer" class=""><code>250b20f</code></a> 及其后的中断恢复改动）。行为经后端与前端自动化测试覆盖；限流、断流等故障场景通过本地故障网关注入验证，未在真实供应商故障下逐一复现；业务操作使用本地演示适配器，未连接真实订单系统。</p>]]></content:encoded>
+            <category>AI</category>
+            <category>LLM</category>
+            <category>Agent</category>
+            <category>Reliability</category>
+        </item>
         <item>
             <title><![CDATA[会话越来越长，Agent 还记得什么？]]></title>
             <link>https://xpzero.github.io/blog/articles/ai-agent-learning/session-context-observability</link>
@@ -2215,115 +2379,6 @@
 <li class=""><a href="https://platform.openai.com/docs/api-reference/chat/create" target="_blank" rel="noopener noreferrer" class="">OpenAI API：temperature / top_p / logprobs 参数</a></li>
 <li class=""><a href="https://arxiv.org/abs/1904.09751" target="_blank" rel="noopener noreferrer" class="">The Curious Case of Neural Text Degeneration（top_p 出处）</a></li>
 <li class=""><a href="https://en.wikipedia.org/wiki/Softmax_function#Smooth_arg_max" target="_blank" rel="noopener noreferrer" class="">softmax 与 temperature（Wikipedia）</a></li>
-</ul>]]></content:encoded>
-            <category>AI</category>
-            <category>LLM</category>
-        </item>
-        <item>
-            <title><![CDATA[KV Cache 与自回归：为什么首字慢、后面快]]></title>
-            <link>https://xpzero.github.io/blog/articles/llm-learning/kv-cache</link>
-            <guid>https://xpzero.github.io/blog/articles/llm-learning/kv-cache</guid>
-            <pubDate>Thu, 06 Aug 2026 00:00:00 GMT</pubDate>
-            <description><![CDATA[用过流式输出的聊天界面都见过这个节奏：发出问题后要等一小会儿，第一个字才蹦出来；可一旦开始，后面的字就哗哗地流。为什么"启动"和"续写"速度差这么多？]]></description>
-            <content:encoded><![CDATA[<p>用过流式输出的聊天界面都见过这个节奏：发出问题后要等一小会儿，第一个字才蹦出来；可一旦开始，后面的字就哗哗地流。为什么"启动"和"续写"速度差这么多？</p>
-<p>答案分两层：生成本来就是一个字一个字循环出来的（自回归），而这个循环里有一块巨大的重复计算被缓存掉了（KV Cache）。这篇把两层都说清，不需要任何环境，纯讲解。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="自回归生成就是不断地接龙">自回归：生成就是不断地"接龙"<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E8%87%AA%E5%9B%9E%E5%BD%92%E7%94%9F%E6%88%90%E5%B0%B1%E6%98%AF%E4%B8%8D%E6%96%AD%E5%9C%B0%E6%8E%A5%E9%BE%99" class="hash-link" aria-label="自回归：生成就是不断地&quot;接龙&quot;的直接链接" title="自回归：生成就是不断地&quot;接龙&quot;的直接链接" translate="no">​</a></h2>
-<p><a class="" href="https://xpzero.github.io/blog/articles/llm-learning/transformer-overview">第三篇</a>讲过，模型单次只做一件事：给一段序列，算出<strong>下一个</strong> token 的概率表。那一整段回答怎么来的？把这个动作循环起来：</p>
-<!-- -->
-<p>每生成一个 token，就把它接到序列末尾，<strong>整个序列重新作为输入</strong>再算一轮，直到模型选出一个特殊的"结束" token。这种"自己的输出喂给自己当输入"的方式叫<strong>自回归（autoregressive）</strong>。</p>
-<p>流式输出（打字机效果）不是什么动画技巧——服务端本来就是一轮循环产出一个 token，只是把每轮结果立刻推给你而已。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="问题每一轮都在重算同样的东西">问题：每一轮都在重算同样的东西<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E9%97%AE%E9%A2%98%E6%AF%8F%E4%B8%80%E8%BD%AE%E9%83%BD%E5%9C%A8%E9%87%8D%E7%AE%97%E5%90%8C%E6%A0%B7%E7%9A%84%E4%B8%9C%E8%A5%BF" class="hash-link" aria-label="问题：每一轮都在重算同样的东西的直接链接" title="问题：每一轮都在重算同样的东西的直接链接" translate="no">​</a></h2>
-<p>按上面的流程，一个明显的浪费浮出水面。<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>说过，每个 token 要算出自己的 Q、K、V 向量。看看相邻两轮的输入：</p>
-<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">第 1 轮输入：今天 天气           → 算 2 个 token 的 K、V</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 2 轮输入：今天 天气 真        → "今天""天气"的 K、V 和上轮一模一样</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 3 轮输入：今天 天气 真 好     → 前 3 个 token 的 K、V 又是重算</span><br></div></code></pre></div></div>
-<p>前文 token 的 Key 和 Value <strong>每一轮都相同</strong>（内容没变、位置没变），却在被反复计算。回答越长，浪费越大：生成第 1000 个 token 时，前 999 个的 K、V 全是重复劳动。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="kv-cache算过的就存下来">KV Cache：算过的就存下来<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#kv-cache%E7%AE%97%E8%BF%87%E7%9A%84%E5%B0%B1%E5%AD%98%E4%B8%8B%E6%9D%A5" class="hash-link" aria-label="KV Cache：算过的就存下来的直接链接" title="KV Cache：算过的就存下来的直接链接" translate="no">​</a></h2>
-<p>解法直白：第一次算出的 K、V 存进显存，后续轮次直接取用。这块缓存就叫 <strong>KV Cache</strong>。</p>
-<!-- -->
-<p>于是生成过程天然分成两个阶段，速度特性完全不同：</p>
-<ul>
-<li class=""><strong>预填充（prefill）</strong>：处理你的提示词。所有输入 token 的 K、V 都要从零算一遍，提示词越长这一步越慢——<strong>这就是首字等待的主要来源</strong>。好在这批计算可以并行做，算力打满。</li>
-<li class=""><strong>解码（decode）</strong>：逐字生成。每轮只算最新一个 token 的量，其余全部查缓存——所以后面的字来得快，且每个字的耗时大致恒定。</li>
-</ul>
-<p>两个阶段有专门的量化指标：首字延迟叫 <strong>TTFT</strong>（Time To First Token），后续出字速度叫 <strong>TPOT</strong>（Time Per Output Token）。看到模型服务的性能宣传时，可以问一句：说的是哪一个？</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="缓存不是免费的显存换时间">缓存不是免费的：显存换时间<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E7%BC%93%E5%AD%98%E4%B8%8D%E6%98%AF%E5%85%8D%E8%B4%B9%E7%9A%84%E6%98%BE%E5%AD%98%E6%8D%A2%E6%97%B6%E9%97%B4" class="hash-link" aria-label="缓存不是免费的：显存换时间的直接链接" title="缓存不是免费的：显存换时间的直接链接" translate="no">​</a></h2>
-<p>KV Cache 是典型的空间换时间，而这个"空间"很贵——它吃显存，且大小和上下文长度<strong>成正比</strong>：每多一个 token，每一层都要多存一份 K、V。粗略感受量级：一个 70 亿参数的模型，几万 token 的上下文攒下的缓存能到 GB 级（具体取决于模型结构和精度）。</p>
-<p>这解释了几个日常现象：</p>
-<ul>
-<li class=""><strong>长上下文的定价更贵</strong>：不只是计算多，缓存占着显存，同一张卡能同时服务的用户就少了。</li>
-<li class=""><strong>各家都在改注意力结构</strong>：让多组注意力头共享同一份 K、V（术语叫 GQA/MQA，链接见文末），缓存直接砍到几分之一，换来的是长上下文服务成本大降。</li>
-<li class=""><strong>"提示词缓存"（prompt caching）折扣</strong>：不少服务对重复的提示词前缀收更低费用——因为这段前缀的 KV Cache 可以跨请求复用，预填充直接跳过。把系统提示等固定内容放在提示词<strong>开头</strong>，命中率更高。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="一个容易醒悟的误解">一个容易醒悟的误解<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E4%B8%80%E4%B8%AA%E5%AE%B9%E6%98%93%E9%86%92%E6%82%9F%E7%9A%84%E8%AF%AF%E8%A7%A3" class="hash-link" aria-label="一个容易醒悟的误解的直接链接" title="一个容易醒悟的误解的直接链接" translate="no">​</a></h2>
-<p>"多轮对话时，模型是不是记住了我们前面聊的？"——第一篇实测隐藏系统提示时提过，服务端每次都要收到<strong>完整</strong>的对话历史。KV Cache 可能让服务端少算一点（前缀没变的部分直接复用），但那是<strong>性能优化，不是记忆</strong>：缓存里存的是算过的中间结果，请求结束随时可能被丢弃。对话的"记忆"始终靠调用方把历史原样重发，模型本身一轮结束就什么都不留。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><a href="https://kipp.ly/transformer-inference-arithmetic/" target="_blank" rel="noopener noreferrer" class="">Transformer Inference Arithmetic（KV Cache 显存推算）</a></li>
-<li class=""><a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer" class="">GQA: Training Generalized Multi-Query Transformer</a></li>
-<li class=""><a href="https://platform.openai.com/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer" class="">OpenAI Prompt Caching</a></li>
-<li class=""><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer" class="">vLLM: PagedAttention（KV Cache 的工程管理）</a></li>
-</ul>]]></content:encoded>
-            <category>AI</category>
-            <category>LLM</category>
-        </item>
-        <item>
-            <title><![CDATA[上下文窗口：长了为什么崩，中间为什么被漏掉]]></title>
-            <link>https://xpzero.github.io/blog/articles/llm-learning/context-window</link>
-            <guid>https://xpzero.github.io/blog/articles/llm-learning/context-window</guid>
-            <pubDate>Thu, 06 Aug 2026 00:00:00 GMT</pubDate>
-            <description><![CDATA[把一份长文档丢给模型让它回答问题，常见两种翻车：要么直接报错"超出长度限制"，要么答是答了，但引用的全是文档开头和结尾的内容，中间部分像没读过一样。]]></description>
-            <content:encoded><![CDATA[<p>把一份长文档丢给模型让它回答问题，常见两种翻车：要么直接报错"超出长度限制"，要么答是答了，但引用的全是文档开头和结尾的内容，中间部分像没读过一样。</p>
-<p>这两种现象对应上下文窗口的两个层面：<strong>硬上限</strong>（超过直接拒绝）和<strong>软失效</strong>（没超限但用不好）。前面几篇的知识刚好够把两者都解释清。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口里装的比你以为的多">窗口里装的比你以为的多<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%AA%97%E5%8F%A3%E9%87%8C%E8%A3%85%E7%9A%84%E6%AF%94%E4%BD%A0%E4%BB%A5%E4%B8%BA%E7%9A%84%E5%A4%9A" class="hash-link" aria-label="窗口里装的比你以为的多的直接链接" title="窗口里装的比你以为的多的直接链接" translate="no">​</a></h2>
-<p>上下文窗口（context window）是模型单次能处理的 token 总量上限——注意是<strong>总量</strong>，不是"你能发多少"。一个标称 128k 的窗口，实际是几方分的：</p>
-<!-- -->
-<ul>
-<li class=""><strong>系统提示</strong>：<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/token">第一篇</a>实测过，只发 1 个字符，服务端算了 4387 个 token——隐藏提示先占掉一块。</li>
-<li class=""><strong>历史对话</strong>：模型无状态，多轮对话靠每次重发全部历史，聊得越久这块越大。</li>
-<li class=""><strong>模型输出</strong>：生成的内容也在窗口里。输入塞得太满，留给回答的空间就不够，可能话说一半被截断。</li>
-</ul>
-<p>硬上限的报错好处理（收到错误码就截断或分段）；麻烦的是下面这种。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口没满能力先掉了">窗口没满，能力先掉了<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%AA%97%E5%8F%A3%E6%B2%A1%E6%BB%A1%E8%83%BD%E5%8A%9B%E5%85%88%E6%8E%89%E4%BA%86" class="hash-link" aria-label="窗口没满，能力先掉了的直接链接" title="窗口没满，能力先掉了的直接链接" translate="no">​</a></h2>
-<p>实验研究发现一个稳定现象。测法很直白：把一条关键信息（比如"某人的账号是 XXX"）埋进一堆无关文档里，位置从头到尾挪动，每个位置都问模型同一个问题，看它答不答得出。结果按位置画出来是一条 <strong>U 形曲线</strong>：</p>
-<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">回答准确率</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  高 ┤ ●                                       ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     │   ●                                   ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     │     ●                               ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">  低 ┤        ● ● ● ● ● ● ● ● ● ● ● ● ●</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">     └─────────────────────────────────────────</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">       开头        ← 关键信息的位置 →        结尾</span><br></div></code></pre></div></div>
-<p>放在<strong>开头或结尾</strong>，模型找得到；放在<strong>中间</strong>，准确率明显下滑。这个结果以论文标题出名：<strong>Lost in the Middle</strong>（迷失在中间，链接见文末）。更扎心的是论文的另一个发现：最差的位置上，部分模型的表现甚至不如<strong>不给文档、闭卷回答</strong>——塞了一堆材料，反而帮了倒忙。</p>
-<p>为什么会这样？前几篇的机制能给出几条线索（注意：这是研究给出的部分解释，不是定论）：</p>
-<ul>
-<li class=""><strong>注意力是稀释的。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>说过，每个位置对前文所有 token 分配权重、总和为 1。前文 500 个 token 时每个平均能分到不少；50000 个 token 时，同样的注意力要摊得极薄，中间部分的信号容易被淹没。</li>
-<li class=""><strong>训练数据的偏置。</strong> 训练语料里，关键信息天然多出现在开头（标题、摘要）和结尾（结论）；训练时见得少的模式，用的时候就弱。</li>
-<li class=""><strong>位置编码的外推。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/position">第五篇</a>提过，不少模型的长窗口是靠 RoPE 外推技巧撑出来的，训练时没真见过那么长的距离，远距离的注意力质量本身就打折。</li>
-</ul>
-<p>所以"支持 128k"和"128k 里每个位置都同样好用"是两回事。宣传页写前者，你的使用体验取决于后者。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="长对话为什么会失忆">长对话为什么会"失忆"<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E9%95%BF%E5%AF%B9%E8%AF%9D%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%A4%B1%E5%BF%86" class="hash-link" aria-label="长对话为什么会&quot;失忆&quot;的直接链接" title="长对话为什么会&quot;失忆&quot;的直接链接" translate="no">​</a></h2>
-<p>现在可以把常见的"聊久了忘事"拆成三种不同的病因：</p>
-<ol>
-<li class=""><strong>真被截断了。</strong> 历史超过窗口，应用只能丢弃最早的消息（或做摘要压缩），被丢掉的内容模型是真的看不到了。
-典型场景：聊了一下午的会话里问"我们最开始定的方案是什么"，它给出一个从没出现过的答案——开头的消息早就不在发送的历史里了。</li>
-<li class=""><strong>迷失在中间。</strong> 历史都在窗口内，但你几十轮前说的那句关键设定，正好落在 U 形曲线的谷底。
-典型场景：第 3 轮说过"回答都用英文"，第 40 轮它突然改回中文；把设定重新说一遍立刻恢复——信息在，只是没被"看"到。</li>
-<li class=""><strong>注意力被带偏。</strong> 上下文里塞了大量无关内容（比如粘贴的长日志），相关信息的权重被稀释。
-典型场景：贴了 500 行日志让它找报错原因，它揪着日志里无关紧要的一行大做文章，反而没注意你在开头写的复现步骤。</li>
-</ol>
-<p>三种病因对策不同：第 1 种要控制历史长度、重要设定重复申明；第 2、3 种的通用解法是<strong>别把窗口当垃圾桶</strong>——上下文越干净、关键信息越靠前或靠后，效果越稳。分不清是哪种时有个简易鉴别法：<strong>新开一个对话，只带上关键信息重问一遍</strong>——恢复正常就是 2 或 3（信息被淹没），依旧答错才可能是模型本身不会。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="为什么窗口不能无限大">为什么窗口不能无限大<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%AA%97%E5%8F%A3%E4%B8%8D%E8%83%BD%E6%97%A0%E9%99%90%E5%A4%A7" class="hash-link" aria-label="为什么窗口不能无限大的直接链接" title="为什么窗口不能无限大的直接链接" translate="no">​</a></h2>
-<p>窗口大小不是厂商抠门，是三条成本曲线压着：</p>
-<ul>
-<li class=""><strong>计算量随长度平方涨。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>提过 n 个 token 有 n×n 对注意力打分：窗口从 4k 到 128k，长 32 倍，这部分计算涨约 1000 倍。</li>
-<li class=""><strong>KV Cache 随长度线性涨。</strong> <a class="" href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache">第七篇</a>算过量级，长上下文直接吃显存。</li>
-<li class=""><strong>数据难。</strong> 几十万 token 且前后真有依赖关系的训练样本本来就稀少。</li>
-</ul>
-<p>理解了成本，也就理解了另一件事：<strong>把窗口用满不等于用好</strong>。费用按 token 计，长输入的预填充又慢（首字延迟涨），效果还可能掉——三头亏。先做减法（删无关内容），再考虑检索（只把相关段落塞进上下文，这就是 RAG 的动机，属于应用层话题，见 <a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning">Agent 系列</a>）。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="用的时候真正要注意的">用的时候真正要注意的<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E7%94%A8%E7%9A%84%E6%97%B6%E5%80%99%E7%9C%9F%E6%AD%A3%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84" class="hash-link" aria-label="用的时候真正要注意的的直接链接" title="用的时候真正要注意的的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><strong>给长文档任务做位置设计</strong>：指令和关键约束放开头或结尾，别埋在材料中间；材料很长时，问题重复一遍放在末尾是常见有效的土办法。</li>
-<li class=""><strong>窗口预算要留出口</strong>：预估输出长度，别让输入把窗口顶满。</li>
-<li class=""><strong>截断策略自己定</strong>：靠服务端报错兜底不如自己数着 token 截（<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/token">第一篇</a>讲过怎么数），至少能决定丢哪段，而不是被动丢最早的。</li>
-<li class=""><strong>长上下文能力要实测</strong>：不同模型在同样长度下的表现差异很大，拿自己的真实文档做几次"把关键句藏在不同位置"的测试，比看宣传数字可靠。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/llm-learning/context-window#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><a href="https://arxiv.org/abs/2307.03172" target="_blank" rel="noopener noreferrer" class="">Lost in the Middle: How Language Models Use Long Contexts</a></li>
-<li class=""><a href="https://platform.openai.com/docs/models" target="_blank" rel="noopener noreferrer" class="">OpenAI：模型上下文窗口说明</a></li>
-<li class=""><a href="https://github.com/gkamradt/LLMTest_NeedleInAHaystack" target="_blank" rel="noopener noreferrer" class="">Needle In A Haystack 测试（长上下文检索能力评测）</a></li>
 </ul>]]></content:encoded>
             <category>AI</category>
             <category>LLM</category>
