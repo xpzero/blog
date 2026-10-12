@@ -4,11 +4,87 @@
         <title>柯寒的备忘录</title>
         <link>https://xpzero.github.io/blog/articles</link>
         <description>关于前端、AI、Agent 与工程实践的个人技术文章。</description>
-        <lastBuildDate>Fri, 02 Oct 2026 07:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Mon, 12 Oct 2026 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>zh-CN</language>
         <copyright>Copyright © 2023-2026 Kehan.</copyright>
+        <item>
+            <title><![CDATA[做一个业务 Agent 需要准备什么：一次项目复盘]]></title>
+            <link>https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation</link>
+            <guid>https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation</guid>
+            <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[做完一个带业务目标的 Agent 项目，盘点个人认为需要的准备、做完才理解的事，附术语、RAG 优化方案与 Agent 范式速查。]]></description>
+            <content:encoded><![CDATA[<p>前段时间做了一个带明确业务目标的 Agent 项目：健身私教国际认证的备考助手，能对教材溯源问答、自动出题刷题、做学习规划，技术上用 LangGraph（把 Agent 流程画成图来编排的框架）组织多个子图，检索增强问答（RAG，先从语料检索相关片段、再让模型基于片段回答）做知识层。这篇不复盘项目本身，只整理一件事：<strong>动手之前，我以为主要工作是调通 LLM API；做完才发现，一半以上的精力花在教程不细讲、但个人认为很需要的"准备"上。</strong></p>
+<p>文章分三部分：上半是我认为需要的准备（七项，其中参数后台一项可选），中段是做完才理解的事，下半是可以收藏的速查区（术语、RAG 优化方案、三种范式）。项目细节不展开，只作为结论的出处。</p>
+<!-- -->
+<p>全文结构一张图：</p>
+<div class="myMarkmap_L_os"><svg width="auto" height="auto"></svg><div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="一个人认为需要的准备">一、个人认为需要的准备<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E4%B8%80%E4%B8%AA%E4%BA%BA%E8%AE%A4%E4%B8%BA%E9%9C%80%E8%A6%81%E7%9A%84%E5%87%86%E5%A4%87" class="hash-link" aria-label="一、个人认为需要的准备的直接链接" title="一、个人认为需要的准备的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="1-提示词资产system-prompt-只是零头">1. 提示词资产：system prompt 只是零头<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#1-%E6%8F%90%EF%BF%BD%EF%BF%BD%E7%A4%BA%E8%AF%8D%E8%B5%84%E4%BA%A7system-prompt-%E5%8F%AA%E6%98%AF%E9%9B%B6%E5%A4%B4" class="hash-link" aria-label="1. 提示词资产：system prompt 只是零头的直接链接" title="1. 提示词资产：system prompt 只是零头的直接链接" translate="no">​</a></h3>
+<p>写 demo 时一个 system prompt 就够；真做业务，prompt 的主体很快变成"功能性 prompt"——每个节点干一件小事的指令：把用户的口语问句改写成检索 query、让小模型给检索结果打分判断"够不够回答"、给出题按评分标准打质量分、扮演较真考生给题目挑刺。这类 prompt 的数量会反超 system prompt。</p>
+<p>要准备的不只是"写"，还有"组织"：按业务域分文件集中管理；静态指令与带变量的模板（<code>str.format</code> 占位符那种）分开；占位符命名有约定。prompt 会成为数量最大的代码资产，第一天就要有组织约定，否则两个月后没人说得清"改这条会影响什么"。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="2-意图识别与路由业务超过一个科室就要分诊">2. 意图识别与路由：业务超过一个"科室"就要分诊<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#2-%E6%84%8F%E5%9B%BE%E8%AF%86%E5%88%AB%E4%B8%8E%E8%B7%AF%E7%94%B1%E4%B8%9A%E5%8A%A1%E8%B6%85%E8%BF%87%E4%B8%80%E4%B8%AA%E7%A7%91%E5%AE%A4%E5%B0%B1%E8%A6%81%E5%88%86%E8%AF%8A" class="hash-link" aria-label="2. 意图识别与路由：业务超过一个&quot;科室&quot;就要分诊的直接链接" title="2. 意图识别与路由：业务超过一个&quot;科室&quot;就要分诊的直接链接" translate="no">​</a></h3>
+<p>问答、出题、刷题、规划——业务超过一件事，第一道工序就是判断用户这句话该交给谁。这就是 supervisor（分诊）节点要做的事。实践下来，两级路由的性价比最高：</p>
+<ol>
+<li class=""><strong>规则快路径</strong>：关键词词表命中就直接路由，零成本零延迟，能吃掉大部分明确的请求；</li>
+<li class=""><strong>LLM 结构化路由</strong>：没命中的再走轻量模型，用结构化输出（约束模型输出符合 JSON Schema）返回"意图 + 置信度 + 一句理由"，抗住各种说法变体。</li>
+</ol>
+<p>三个容易漏的细节：<strong>复合请求</strong>要拦截（"帮我看看学得怎么样，顺便出几道题练练"一句话两个意图，关键词快路径会误判，得靠信号词强制它走 LLM）；<strong>低置信别硬选</strong>，送到一个柔性兜底的科室（我的项目里是导师 agent，它能接着把其他科室当工具连着调）；<strong>路由本身挂了也要有默认去向</strong>。</p>
+<p>另外，路由词表别写死在代码里——它是调试期改得最频繁的东西（见第 4 节）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="3-密钥与模型分层不止两行-env">3. 密钥与模型分层：不止两行 env<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#3-%E5%AF%86%E9%92%A5%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%88%86%E5%B1%82%E4%B8%8D%E6%AD%A2%E4%B8%A4%E8%A1%8C-env" class="hash-link" aria-label="3. 密钥与模型分层：不止两行 env的直接链接" title="3. 密钥与模型分层：不止两行 env的直接链接" translate="no">​</a></h3>
+<p>开发环境的 key 清单：LLM API key（按厂商）、观测平台的 key（我用 LangSmith 做链路追踪；LangChain 系项目靠几个环境变量就能开启，不用写接入代码）、数据库连接串。全部走 <code>.env</code>，不进仓库，留一份 <code>.env.example</code> 说明每个变量的用途。</p>
+<p>但比 key 更重要的准备是<strong>模型分档</strong>：重活（生成答案、出题）用强模型；高频小活（路由判定、打分、查重这类"裁判"任务）用轻量 fast 模型——裁判调用占大头，两档之间的成本和延迟能差一个量级。还有一档容易忽略：embedding（把文本变成向量的模型，检索的地基）和 reranker（重排序模型）可以本地跑 ONNX，完全免 key、免配额——但要提前想清楚部署形态，这直接决定 RAG 一节的选型。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="4-可调参数的后台可选方便改参数">4. 可调参数的后台（可选）：方便改参数<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#4-%E5%8F%AF%E8%B0%83%E5%8F%82%E6%95%B0%E7%9A%84%E5%90%8E%E5%8F%B0%E5%8F%AF%E9%80%89%E6%96%B9%E4%BE%BF%E6%94%B9%E5%8F%82%E6%95%B0" class="hash-link" aria-label="4. 可调参数的后台（可选）：方便改参数的直接链接" title="4. 可调参数的后台（可选）：方便改参数的直接链接" translate="no">​</a></h3>
+<p>这一项不是必需，它解决的只是"方便"：会频繁改的东西——prompt、路由词表、阈值、开关——不用每次改代码、重启、发版。我的做法是两层读取：数据库覆盖层优先，没有覆盖就用代码默认值，删除覆盖即回到默认。</p>
+<p>"prompt 配置能不能放后台？"<strong>能，但必须带防护</strong>：保存时校验占位符集合与默认值一致——编辑时删掉一个 <code>{变量}</code>，调用点 <code>format</code> 直接崩；再做一次试渲染让语法错误当场暴露；词表类配置做 JSON 格式校验。本质上就是把"改参数"从发版流程里摘出来，调试时的体验差别很大。</p>
+<p>只是开了这扇门，就得回答"改完怎么知道变好没变"——这就轮到评测出场了。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="5-rag-与-embedding-选型结构可以迭代选型要趁早">5. RAG 与 embedding 选型：结构可以迭代，选型要趁早<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#5-rag-%E4%B8%8E-embedding-%E9%80%89%E5%9E%8B%E7%BB%93%E6%9E%84%E5%8F%AF%E4%BB%A5%E8%BF%AD%E4%BB%A3%E9%80%89%E5%9E%8B%E8%A6%81%E8%B6%81%E6%97%A9" class="hash-link" aria-label="5. RAG 与 embedding 选型：结构可以迭代，选型要趁早的直接链接" title="5. RAG 与 embedding 选型：结构可以迭代，选型要趁早的直接链接" translate="no">​</a></h3>
+<p>有知识问答就要准备 RAG。一条实操经验：<strong>检索结构可以后补迭代</strong>——加重排、调融合权重、改分块策略都是增量改动；但 <strong>embedding 选型要趁早</strong>，换 embedding 模型等于全库重新嵌入，越晚改成本越大。</p>
+<p>选型时三个比榜单更真实的约束：<strong>语言匹配</strong>（中文语料用中文模型）；<strong>本地吞吐</strong>（只在本地部署时才是约束，embedding 走托管 API 的话这条可以忽略；CPU 上跑大模型不现实，我试过一个多语言大模型，吞吐直接不可用，只能回退）；<strong>区分度</strong>（太小的模型语义区分不足，检索指标天花板低）。验证方式只有一个：拿自己的语料建金标准，跑 Recall@K 对比——又是评测的事。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="6-会话状态与中断可恢复教程的盲区">6. 会话状态与中断可恢复：教程的盲区<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#6-%E4%BC%9A%E8%AF%9D%E7%8A%B6%E6%80%81%E4%B8%8E%E4%B8%AD%E6%96%AD%E5%8F%AF%E6%81%A2%E5%A4%8D%E6%95%99%E7%A8%8B%E7%9A%84%E7%9B%B2%E5%8C%BA" class="hash-link" aria-label="6. 会话状态与中断可恢复：教程的盲区的直接链接" title="6. 会话状态与中断可恢复：教程的盲区的直接链接" translate="no">​</a></h3>
+<p>业务流程几乎一定有"不能一口气跑完"的环节：生成学习计划要等用户确认，确认前可能还要求改两版。这意味着两件事要提前准备：</p>
+<ul>
+<li class=""><strong>interrupt（中断）</strong>：流程走到"等确认"就停下来，把控制权交给人；</li>
+<li class=""><strong>checkpointer（状态持久化）</strong>：图的执行状态落到数据库。用户明天再来、进程中间重启过，草稿还在，能从断点继续。</li>
+</ul>
+<p>demo 教程几乎不覆盖这块，但它是"业务流程 Agent"和"问答玩具"的分水岭之一。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="7-评测金标准是最大的准备工作">7. 评测：金标准是最大的准备工作<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#7-%E8%AF%84%E6%B5%8B%E9%87%91%E6%A0%87%E5%87%86%E6%98%AF%E6%9C%80%E5%A4%A7%E7%9A%84%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C" class="hash-link" aria-label="7. 评测：金标准是最大的准备工作的直接链接" title="7. 评测：金标准是最大的准备工作的直接链接" translate="no">​</a></h3>
+<p>为什么必须有：改任何东西——换 embedding、调分块、改一条 prompt——都需要基准，否则不知道是变好了还是变坏了。我项目里检索指标从 0.425 提到 0.545——用的是本地免费的 embedding 模型，没指望这个数字冲多高，重要的是每一步优化都有同一套基准可比；哪天换更强的模型，还是用它来量差距。</p>
+<p>两类评测对应两层风险：<strong>节点流转</strong>（这句话该进哪个科室——意图路由准确率，路由错了后面全错）；<strong>数据校验</strong>（检索的 Recall@K / MRR，该召回的有没有排到前面；引用正确率，答案里的引用是不是真的支持结论）。</p>
+<p>而最大的准备工作是金标准集（golden set，带标准答案的评测集）：检索的"问题 → 标准 chunk"、路由的"问题 → 应去意图"、引用的"答案 → 支持句"，每类先要有这样一套对应关系，指标才有得算——怎么构建、由谁构建，取决于各自的场景。最后让评测脚本输出退出码卡进 CI，门槛变成制度而不是自觉。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="二做完才理解的几件事">二、做完才理解的几件事<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E4%BA%8C%E5%81%9A%E5%AE%8C%E6%89%8D%E7%90%86%E8%A7%A3%E7%9A%84%E5%87%A0%E4%BB%B6%E4%BA%8B" class="hash-link" aria-label="二、做完才理解的几件事的直接链接" title="二、做完才理解的几件事的直接链接" translate="no">​</a></h2>
+<p><strong>1. 运行时质量闸门不等于离线评测。</strong> 离线评测测系统水平，但生成类内容每条都是新的，离线集测不完。给出题上闸门链：证据句与原文的逐字相似度（grounding）卡幻觉、与库内已有题查重、小模型按评分标准打质量分、再来一轮对抗评审。离线管水平，闸门管单条，缺一不可。</p>
+<p><strong>2. 确定性优先：每个环节先问"必须用 LLM 吗"。</strong> 客观题判分是纯规则、错题复习排程是 SM-2 算法（背单词软件同款的间隔重复算法）、多路检索融合是 RRF 公式——全是零 LLM 的纯代码，快、稳、免费。"哪里不用 LLM"和"哪里用"是同等重要的设计决定。</p>
+<p><strong>3. 失败路径占一半工作量。</strong> 每个 LLM 调用点都要预备"它挂了怎么办"：路由失败有默认去向、设置层损坏回退代码默认、工具环有步数上限防失控、收尾合成失败给固定话术。demo 只写 happy path，业务 Agent 的一半工作量在 unhappy path。</p>
+<p><strong>4. 可观测不是装个 key。</strong> 观测平台的真正价值在 trace 粒度：一次请求能拆到节点级——哪次路由、哪次检索、分数构成多少。排障时"能不能定位到是哪个节点哪次调用出的问题"才是验收标准。</p>
+<p><strong>5. 耗时任务要出请求线程。</strong> 文档解析、扫描版 PDF 的 OCR、批量出题是分钟级任务，放请求里必然超时。准备后台队列：任务表记状态、前端轮询进度、完成后再触发下游（比如索引完成自动出题）。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="三速查区">三、速查区<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E4%B8%89%E9%80%9F%E6%9F%A5%E5%8C%BA" class="hash-link" aria-label="三、速查区的直接链接" title="三、速查区的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="术语速查">术语速查<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5" class="hash-link" aria-label="术语速查的直接链接" title="术语速查的直接链接" translate="no">​</a></h3>
+<table><thead><tr><th>术语</th><th>是什么</th><th>怎么理解</th></tr></thead><tbody><tr><td>HyDE</td><td>Hypothetical Document Embeddings：先让 LLM 生成一段假想答案，用它做向量检索</td><td>桥接"文体差"：用户问句是短口语，语料是长书面语，同一件事的两种文体在向量空间离得远；把查询侧也变成"文档"，两边就同文体了</td></tr><tr><td>RRF</td><td>Reciprocal Rank Fusion：多路检索结果按排名融合，分数是各路 <code>1/(k+排名)</code> 之和</td><td>不比分数比排名：向量分和词面分量纲不同，排名才是通用货币</td></tr><tr><td>Recall@K</td><td>前 K 条结果中包含正确答案的比例</td><td>RAG 检索最常用的门槛指标（我项目卡 Recall@5 ≥ 0.75）</td></tr><tr><td>MRR</td><td>Mean Reciprocal Rank：第一个正确结果排名倒数的平均</td><td>比 Recall 更严：关心正确答案"平均排第几"</td></tr><tr><td>reranker / cross-encoder</td><td>query 与文档拼在一起过编码器打相关分</td><td>精排用：比向量检索（bi-encoder）准，但每对都要跑一次模型，只能给粗召回的前几十条</td></tr><tr><td>chunk</td><td>文档分块，检索的最小单元</td><td>大小、重叠、是否带【书名·章节】上下文前缀，都直接影响召回</td></tr><tr><td>grounding</td><td>生成内容与原文的可追溯性</td><td>最硬的测法是证据句与原文的逐字相似度</td></tr><tr><td>NLI</td><td>Natural Language Inference：蕴含 / 中立 / 矛盾三分类</td><td>引用校验的语义判官：词面对不上时，判"这句结论是否真被原文蕴含"</td></tr><tr><td>tool calling</td><td>模型按 schema 请求调用外部工具，结果回填后继续生成</td><td>Agent 的"手"：模型只出"调什么 + 参数"，执行在代码侧</td></tr><tr><td>结构化输出</td><td>约束模型输出符合 JSON Schema</td><td>路由判定（意图 + 置信度 + 理由）就靠它，比手写"请返回 JSON"协议稳</td></tr><tr><td>supervisor</td><td>分诊节点：先判意图再分发子图</td><td>多业务 Agent 的前台</td></tr><tr><td>HITL</td><td>Human-in-the-Loop：关键动作前中断等人确认</td><td>计划确认、审批类业务必需</td></tr><tr><td>checkpointer</td><td>图执行状态的持久化</td><td>会话中断可恢复的地基：状态落库，重启续跑</td></tr><tr><td>SSE</td><td>Server-Sent Events</td><td>流式输出的传输协议，打字机效果的载体</td></tr><tr><td>金标准</td><td>golden set：带标准答案的评测集</td><td>评测的前置工程，也是工作量最大的一块</td></tr><tr><td>SM-2</td><td>间隔重复排程算法</td><td>错题"几天后该再出现"不用 LLM，用它</td></tr></tbody></table>
+<p>工具调用更基础的介绍见<a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-02-tool-use">前文：让模型用上它接触不到的数据</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="常用-rag-优化方案">常用 RAG 优化方案<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E5%B8%B8%E7%94%A8-rag-%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88" class="hash-link" aria-label="常用 RAG 优化方案的直接链接" title="常用 RAG 优化方案的直接链接" translate="no">​</a></h3>
+<p>分块（chunking）本身就有好几种流派，先单列；其余手段按"解决什么问题"排列。</p>
+<table><thead><tr><th>手段</th><th>解决什么问题</th><th>代价 / 前置条件</th></tr></thead><tbody><tr><td>固定长度分块（大小 + 重叠）</td><td>最简单可控的分块基线</td><td>太长稀释语义、太短丢上下文，参数要靠评测试出来</td></tr><tr><td>按结构分块（标题 / 章节 / 段落边界）</td><td>尊重文档天然的语义边界，块更完整</td><td>只适用于结构化语料（Markdown、带目录的教材）</td></tr><tr><td>语义分块</td><td>在相邻文本 embedding 相似度骤降的地方切开，块内语义更聚集</td><td>全语料先算一遍 embedding，构建成本高</td></tr><tr><td>父子分块（small-to-big）</td><td>小块检索更准，大块（父块）喂给 LLM 保住上下文</td><td>要维护父子两层索引和映射关系</td></tr><tr><td>混合检索（向量 + 词面）</td><td>向量对关键词精确匹配弱，词面对同义改写弱，两路互补</td><td>两套索引都要维护，融合权重要调</td></tr><tr><td>查询扩展（multi-query）</td><td>一个问法召回不全；生成多个变体查询分别检索再合并</td><td>每个变体都要检索一次，还要写合并逻辑</td></tr><tr><td>HyDE 改写</td><td>口语短问与书面长文的文体差</td><td>每次检索多一次 LLM 调用，延迟与成本</td></tr><tr><td>加权 RRF</td><td>多路结果怎么合成一个排序</td><td>权重没有理论值，只能评测驱动地调</td></tr><tr><td>reranker 精排</td><td>粗召回排序不准</td><td>CPU 上单条延迟秒级，只精排前几十条的小窗口</td></tr><tr><td>chunk 上下文前缀（【书名·章节】）</td><td>分块脱离出处后语义不完整</td><td>嵌入时就要带上，事后补等于全库重嵌入</td></tr><tr><td>权威级加权</td><td>语料来源质量不齐</td><td>保守用：只做平局打破；权重大会压坏正确排序（实测教训）</td></tr><tr><td>元数据过滤</td><td>先按来源 / 类型 / 时间收窄范围再检索</td><td>入库时要打好元数据</td></tr><tr><td>金标准驱动迭代</td><td>一切优化都需要尺子</td><td>先得有一套金标准</td></tr></tbody></table>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="三种-agent-范式基础理解">三种 Agent 范式（基础理解）<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E4%B8%89%E7%A7%8D-agent-%E8%8C%83%E5%BC%8F%E5%9F%BA%E7%A1%80%E7%90%86%E8%A7%A3" class="hash-link" aria-label="三种 Agent 范式（基础理解）的直接链接" title="三种 Agent 范式（基础理解）的直接链接" translate="no">​</a></h3>
+<p><strong>ReAct：想一步、做一步。</strong> 模型每轮决定"下一步调什么工具"，看到结果再决定下一步，步骤完全依赖前序结果。适合探索型任务——比如先查学情，看到薄弱点在哪，再决定出什么题。我的项目里导师 agent 就是这个形态：把查学情、出题、调计划当工具连续调用。</p>
+<p><strong>Plan-and-Execute：先出完整计划，再逐步执行。</strong> 适合能预先分解的多步任务；还有个省钱套路——规划用强模型做一次，执行用便宜模型做多次，偏了再重规划。我的项目里没有严格对应：规划子图是给"用户"做学习计划，不是 agent 自己拆解任务，这点不硬套。</p>
+<p><strong>反思：生成之后自己当评委，按批评修改再交卷。</strong> 适合质量敏感的生成任务；评委换个角色效果往往更好——让模型扮"较真考生"给题目挑刺，比"请你检查一下"抓出的问题多得多。我项目里出题的对抗评审、问答的"检索自评 - 改写重试"都是这个思路。</p>
+<p>一句话选择建议：流程能写死就写死（静态编排），下一步看结果再定的用 ReAct，单次生成质量要求高的加反思环节。</p>
+<h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="延伸阅读">延伸阅读<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB" class="hash-link" aria-label="延伸阅读的直接链接" title="延伸阅读的直接链接" translate="no">​</a></h3>
+<ul>
+<li class=""><a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener noreferrer" class="">Anthropic：Building Effective Agents</a>：workflow 与 agent 的边界，几种常用编排模式</li>
+<li class=""><a href="https://lilianweng.github.io/posts/2023-06-23-agent/" target="_blank" rel="noopener noreferrer" class="">Lilian Weng：LLM Powered Autonomous Agents</a>：规划、记忆、工具三大组件的经典综述</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="收尾准备清单总表">收尾：准备清单总表<a href="https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation#%E6%94%B6%E5%B0%BE%E5%87%86%E5%A4%87%E6%B8%85%E5%8D%95%E6%80%BB%E8%A1%A8" class="hash-link" aria-label="收尾：准备清单总表的直接链接" title="收尾：准备清单总表的直接链接" translate="no">​</a></h2>
+<table><thead><tr><th>#</th><th>准备项</th><th>一句话理由</th></tr></thead><tbody><tr><td>1</td><td>提示词资产</td><td>功能性 prompt 数量反超 system prompt，第一天就要有组织约定</td></tr><tr><td>2</td><td>意图识别与路由</td><td>业务多于一个科室就要分诊；两级路由 + 复合拦截 + 兜底</td></tr><tr><td>3</td><td>密钥与模型分层</td><td>key 只是入场券；重活强模型、裁判活 fast 模型、本地模型免 key</td></tr><tr><td>4</td><td>可调参数的后台（可选）</td><td>方便改参数、改配置不改代码；prompt 可放，但要带占位符校验和回退</td></tr><tr><td>5</td><td>RAG 与 embedding 选型</td><td>检索结构可迭代；embedding 选型趁早，换一次重嵌入一次</td></tr><tr><td>6</td><td>会话状态与中断可恢复</td><td>interrupt + checkpointer，有"等确认"环节的业务必需</td></tr><tr><td>7</td><td>评测</td><td>节点流转 + 数据校验；金标准是前置工程，退出码卡 CI</td></tr></tbody></table>
+<p>每一样都从最小版本开始：prompt 先按域分文件，路由先上词表，评测先攒二十条金标准。跑通再升级，别一开始就搭全套。</p>
+<hr>
+<p>本文观点整理自我的备考 Agent 项目（LangGraph 多子图 + 溯源 RAG + 评测门槛进 CI，仓库在 <a href="https://github.com/xpzero/fitness-cert-agent-lc" target="_blank" rel="noopener noreferrer" class="">xpzero/fitness-cert-agent-lc</a>）；文中机制描述对照项目代码整理，指标数字为项目 README 记录的实测值。术语与范式部分是个人理解的浓缩，不是权威定义。</p>]]></content:encoded>
+            <category>AI</category>
+            <category>LLM</category>
+            <category>Agent</category>
+        </item>
         <item>
             <title><![CDATA[生成到一半：Agent 消息的停止、中断与恢复]]></title>
             <link>https://xpzero.github.io/blog/articles/ai-agent-learning/advanced/agent-message-lifecycle</link>
@@ -2298,52 +2374,6 @@
 <li class=""><a href="https://platform.openai.com/docs/api-reference/chat/create" target="_blank" rel="noopener noreferrer" class="">OpenAI API：temperature / top_p / logprobs 参数</a></li>
 <li class=""><a href="https://arxiv.org/abs/1904.09751" target="_blank" rel="noopener noreferrer" class="">The Curious Case of Neural Text Degeneration（top_p 出处）</a></li>
 <li class=""><a href="https://en.wikipedia.org/wiki/Softmax_function#Smooth_arg_max" target="_blank" rel="noopener noreferrer" class="">softmax 与 temperature（Wikipedia）</a></li>
-</ul>]]></content:encoded>
-            <category>AI</category>
-            <category>LLM</category>
-        </item>
-        <item>
-            <title><![CDATA[KV Cache 与自回归：为什么首字慢、后面快]]></title>
-            <link>https://xpzero.github.io/blog/articles/llm-learning/kv-cache</link>
-            <guid>https://xpzero.github.io/blog/articles/llm-learning/kv-cache</guid>
-            <pubDate>Thu, 06 Aug 2026 00:00:00 GMT</pubDate>
-            <description><![CDATA[用过流式输出的聊天界面都见过这个节奏：发出问题后要等一小会儿，第一个字才蹦出来；可一旦开始，后面的字就哗哗地流。为什么"启动"和"续写"速度差这么多？]]></description>
-            <content:encoded><![CDATA[<p>用过流式输出的聊天界面都见过这个节奏：发出问题后要等一小会儿，第一个字才蹦出来；可一旦开始，后面的字就哗哗地流。为什么"启动"和"续写"速度差这么多？</p>
-<p>答案分两层：生成本来就是一个字一个字循环出来的（自回归），而这个循环里有一块巨大的重复计算被缓存掉了（KV Cache）。这篇把两层都说清，不需要任何环境，纯讲解。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="自回归生成就是不断地接龙">自回归：生成就是不断地"接龙"<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E8%87%AA%E5%9B%9E%E5%BD%92%E7%94%9F%E6%88%90%E5%B0%B1%E6%98%AF%E4%B8%8D%E6%96%AD%E5%9C%B0%E6%8E%A5%E9%BE%99" class="hash-link" aria-label="自回归：生成就是不断地&quot;接龙&quot;的直接链接" title="自回归：生成就是不断地&quot;接龙&quot;的直接链接" translate="no">​</a></h2>
-<p><a class="" href="https://xpzero.github.io/blog/articles/llm-learning/transformer-overview">第三篇</a>讲过，模型单次只做一件事：给一段序列，算出<strong>下一个</strong> token 的概率表。那一整段回答怎么来的？把这个动作循环起来：</p>
-<!-- -->
-<p>每生成一个 token，就把它接到序列末尾，<strong>整个序列重新作为输入</strong>再算一轮，直到模型选出一个特殊的"结束" token。这种"自己的输出喂给自己当输入"的方式叫<strong>自回归（autoregressive）</strong>。</p>
-<p>流式输出（打字机效果）不是什么动画技巧——服务端本来就是一轮循环产出一个 token，只是把每轮结果立刻推给你而已。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="问题每一轮都在重算同样的东西">问题：每一轮都在重算同样的东西<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E9%97%AE%E9%A2%98%E6%AF%8F%E4%B8%80%E8%BD%AE%E9%83%BD%E5%9C%A8%E9%87%8D%E7%AE%97%E5%90%8C%E6%A0%B7%E7%9A%84%E4%B8%9C%E8%A5%BF" class="hash-link" aria-label="问题：每一轮都在重算同样的东西的直接链接" title="问题：每一轮都在重算同样的东西的直接链接" translate="no">​</a></h2>
-<p>按上面的流程，一个明显的浪费浮出水面。<a class="" href="https://xpzero.github.io/blog/articles/llm-learning/attention">第四篇</a>说过，每个 token 要算出自己的 Q、K、V 向量。看看相邻两轮的输入：</p>
-<div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">第 1 轮输入：今天 天气           → 算 2 个 token 的 K、V</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 2 轮输入：今天 天气 真        → "今天""天气"的 K、V 和上轮一模一样</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">第 3 轮输入：今天 天气 真 好     → 前 3 个 token 的 K、V 又是重算</span><br></div></code></pre></div></div>
-<p>前文 token 的 Key 和 Value <strong>每一轮都相同</strong>（内容没变、位置没变），却在被反复计算。回答越长，浪费越大：生成第 1000 个 token 时，前 999 个的 K、V 全是重复劳动。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="kv-cache算过的就存下来">KV Cache：算过的就存下来<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#kv-cache%E7%AE%97%E8%BF%87%E7%9A%84%E5%B0%B1%E5%AD%98%E4%B8%8B%E6%9D%A5" class="hash-link" aria-label="KV Cache：算过的就存下来的直接链接" title="KV Cache：算过的就存下来的直接链接" translate="no">​</a></h2>
-<p>解法直白：第一次算出的 K、V 存进显存，后续轮次直接取用。这块缓存就叫 <strong>KV Cache</strong>。</p>
-<!-- -->
-<p>于是生成过程天然分成两个阶段，速度特性完全不同：</p>
-<ul>
-<li class=""><strong>预填充（prefill）</strong>：处理你的提示词。所有输入 token 的 K、V 都要从零算一遍，提示词越长这一步越慢——<strong>这就是首字等待的主要来源</strong>。好在这批计算可以并行做，算力打满。</li>
-<li class=""><strong>解码（decode）</strong>：逐字生成。每轮只算最新一个 token 的量，其余全部查缓存——所以后面的字来得快，且每个字的耗时大致恒定。</li>
-</ul>
-<p>两个阶段有专门的量化指标：首字延迟叫 <strong>TTFT</strong>（Time To First Token），后续出字速度叫 <strong>TPOT</strong>（Time Per Output Token）。看到模型服务的性能宣传时，可以问一句：说的是哪一个？</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="缓存不是免费的显存换时间">缓存不是免费的：显存换时间<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E7%BC%93%E5%AD%98%E4%B8%8D%E6%98%AF%E5%85%8D%E8%B4%B9%E7%9A%84%E6%98%BE%E5%AD%98%E6%8D%A2%E6%97%B6%E9%97%B4" class="hash-link" aria-label="缓存不是免费的：显存换时间的直接链接" title="缓存不是免费的：显存换时间的直接链接" translate="no">​</a></h2>
-<p>KV Cache 是典型的空间换时间，而这个"空间"很贵——它吃显存，且大小和上下文长度<strong>成正比</strong>：每多一个 token，每一层都要多存一份 K、V。粗略感受量级：一个 70 亿参数的模型，几万 token 的上下文攒下的缓存能到 GB 级（具体取决于模型结构和精度）。</p>
-<p>这解释了几个日常现象：</p>
-<ul>
-<li class=""><strong>长上下文的定价更贵</strong>：不只是计算多，缓存占着显存，同一张卡能同时服务的用户就少了。</li>
-<li class=""><strong>各家都在改注意力结构</strong>：让多组注意力头共享同一份 K、V（术语叫 GQA/MQA，链接见文末），缓存直接砍到几分之一，换来的是长上下文服务成本大降。</li>
-<li class=""><strong>"提示词缓存"（prompt caching）折扣</strong>：不少服务对重复的提示词前缀收更低费用——因为这段前缀的 KV Cache 可以跨请求复用，预填充直接跳过。把系统提示等固定内容放在提示词<strong>开头</strong>，命中率更高。</li>
-</ul>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="一个容易醒悟的误解">一个容易醒悟的误解<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E4%B8%80%E4%B8%AA%E5%AE%B9%E6%98%93%E9%86%92%E6%82%9F%E7%9A%84%E8%AF%AF%E8%A7%A3" class="hash-link" aria-label="一个容易醒悟的误解的直接链接" title="一个容易醒悟的误解的直接链接" translate="no">​</a></h2>
-<p>"多轮对话时，模型是不是记住了我们前面聊的？"——第一篇实测隐藏系统提示时提过，服务端每次都要收到<strong>完整</strong>的对话历史。KV Cache 可能让服务端少算一点（前缀没变的部分直接复用），但那是<strong>性能优化，不是记忆</strong>：缓存里存的是算过的中间结果，请求结束随时可能被丢弃。对话的"记忆"始终靠调用方把历史原样重发，模型本身一轮结束就什么都不留。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="https://xpzero.github.io/blog/articles/llm-learning/kv-cache#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
-<ul>
-<li class=""><a href="https://kipp.ly/transformer-inference-arithmetic/" target="_blank" rel="noopener noreferrer" class="">Transformer Inference Arithmetic（KV Cache 显存推算）</a></li>
-<li class=""><a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer" class="">GQA: Training Generalized Multi-Query Transformer</a></li>
-<li class=""><a href="https://platform.openai.com/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer" class="">OpenAI Prompt Caching</a></li>
-<li class=""><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer" class="">vLLM: PagedAttention（KV Cache 的工程管理）</a></li>
 </ul>]]></content:encoded>
             <category>AI</category>
             <category>LLM</category>
