@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xpzero.github.io/blog/articles</id>
-    <title>柯寒的备忘录</title>
+    <title>周期的备忘录</title>
     <updated>2026-10-12T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xpzero.github.io/blog/articles"/>
     <subtitle>关于前端、AI、Agent 与工程实践的个人技术文章。</subtitle>
     <icon>https://xpzero.github.io/blog/img/favicon.ico</icon>
-    <rights>Copyright © 2023-2026 Kehan.</rights>
+    <rights>Copyright © 2023-2026 Zhouqi.</rights>
     <entry>
         <title type="html"><![CDATA[做一个业务 Agent 需要准备什么：一次项目复盘]]></title>
         <id>https://xpzero.github.io/blog/articles/ai-agent-learning/business-agent-preparation</id>
@@ -81,7 +81,7 @@
 <hr>
 <p>本文观点整理自我的备考 Agent 项目（LangGraph 多子图 + 溯源 RAG + 评测门槛进 CI，仓库在 <a href="https://github.com/xpzero/fitness-cert-agent-lc" target="_blank" rel="noopener noreferrer" class="">xpzero/fitness-cert-agent-lc</a>）；文中机制描述对照项目代码整理，指标数字为项目 README 记录的实测值。术语与范式部分是个人理解的浓缩，不是权威定义。</p>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -167,7 +167,7 @@
 <hr>
 <p><strong>版本说明</strong>：本文机制与代码节选基于 <a href="https://github.com/xpzero/demo-agent" target="_blank" rel="noopener noreferrer" class=""><code>xpzero/demo-agent</code></a>（分支 <code>feat/conversation-state</code>，固定提交 <a href="https://github.com/xpzero/demo-agent/commit/bf1fd70" target="_blank" rel="noopener noreferrer" class=""><code>bf1fd70</code></a>）。</p>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -222,7 +222,7 @@
 <p>页面分隔线只说明摘要收录到了哪里，统计面板也不保存本轮输入。要回答“模型这一轮具体收到哪几条原话”，还需要记录当时组装并发送的内容。</p>
 <p>本文的流程以文中链接的代码版本为依据；截图展示的是模拟模型演示会话。真实模型生成摘要的效果尚未完成验证。</p>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -299,7 +299,7 @@
 <li class=""><a href="https://github.com/xpzero/demo-agent/pull/2" target="_blank" rel="noopener noreferrer" class="">SQLite 会话 PR #2</a>；<a href="https://github.com/xpzero/demo-agent/pull/6" target="_blank" rel="noopener noreferrer" class="">网页历史列表 PR #6</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -347,7 +347,7 @@
 <li class=""><a href="https://platform.openai.com/docs/api-reference/chat/create" target="_blank" rel="noopener noreferrer" class="">OpenAI：Create chat completion</a> / <a href="https://platform.openai.com/docs/api-reference/chat/streaming" target="_blank" rel="noopener noreferrer" class="">Streaming</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="JavaScript" term="JavaScript"/>
@@ -459,7 +459,7 @@
 <li class="">DevTools 源码（固定 commit <code>75afaab</code>，原文记录于 2026-09-14 核对）：<a href="https://github.com/ChromeDevTools/devtools-frontend/blob/75afaab2ee443b830c7177655258dd8c423dc8d1/front_end/panels/network/NetworkItemView.ts#L204" target="_blank" rel="noopener noreferrer" class="">判定 EventStream 标签页</a> · <a href="https://github.com/ChromeDevTools/devtools-frontend/blob/75afaab2ee443b830c7177655258dd8c423dc8d1/front_end/core/sdk/NetworkRequest.ts#L827" target="_blank" rel="noopener noreferrer" class="">解析入口</a> · <a href="https://github.com/ChromeDevTools/devtools-frontend/blob/75afaab2ee443b830c7177655258dd8c423dc8d1/front_end/core/sdk/ServerSentEventsProtocol.ts" target="_blank" rel="noopener noreferrer" class="">SSE 协议解析器</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="HTTP" term="HTTP"/>
@@ -486,7 +486,7 @@
 <p>网上关于 AI 的讨论很多：未来不需要程序员了、警惕AI陷阱、LLM 厂商在延缓升级进度、AI 造成了更大的代码“屎山”……。</p>
 <p>言论很多，而我活在当下，抓住能抓住的一切，无疚即可。</p>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -755,7 +755,7 @@
 <li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-10-tool-visibility">前文：工具明明执行了，为什么页面上看不见？</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -854,7 +854,7 @@
 <li class=""><a class="" href="https://xpzero.github.io/blog/articles/ai-agent-learning/build-agent-09-responses-api">前文：从 Chat Completions 切到 Responses API</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -1639,7 +1639,7 @@
 <div class="language-text codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-text codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">模型负责提出可能的下一步</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">上下文系统负责提供有限的当前世界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">工具协议负责表达可执行动作</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">权限系统负责划定信任边界</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">执行器负责改变真实环境</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">反馈循环负责让模型根据结果继续修正</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">持久化和恢复负责跨时间维持任务连续性</span><br></div></code></pre></div></div>
 <p>真正让它成为 Agent 的，不是其中任何一个部件，而是这些部件形成了一个受控、可观察、可中断、可恢复的闭环。</p>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -1784,7 +1784,7 @@
 <li class=""><a href="https://pypi.org/project/fastapi/" target="_blank" rel="noopener noreferrer" class="">FastAPI 0.141.1：PyPI</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="python" term="python"/>
@@ -1937,7 +1937,7 @@
 <li class=""><a href="https://github.com/xpzero/demo-agent/tree/5c85226" target="_blank" rel="noopener noreferrer" class="">迁移后代码：commit 5c85226</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2034,7 +2034,7 @@
 </ul>
 <p>本篇对应代码：<a href="https://github.com/xpzero/demo-agent/tree/b88beae" target="_blank" rel="noopener noreferrer" class="">commit b88beae</a>，流式 bug 的修复在 <a href="https://github.com/xpzero/demo-agent/tree/fb52cd1" target="_blank" rel="noopener noreferrer" class="">commit fb52cd1</a>。这轮还顺手把 <code>agent.py</code> 拆成了 <code>agent/</code> 包（<a href="https://github.com/xpzero/demo-agent/tree/e7e50b6" target="_blank" rel="noopener noreferrer" class="">commit e7e50b6</a>），纯结构调整，没改逻辑。</p>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2108,7 +2108,7 @@
 <li class=""><a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" target="_blank" rel="noopener noreferrer" class="">MDN：Server-sent events</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2175,7 +2175,7 @@
 <li class=""><a href="https://github.com/google/sentencepiece" target="_blank" rel="noopener noreferrer" class="">SentencePiece</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2229,7 +2229,7 @@
 <li class=""><a href="https://zh.wikipedia.org/wiki/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7" target="_blank" rel="noopener noreferrer" class="">余弦相似度（Wikipedia）</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2286,7 +2286,7 @@
 <li class=""><a href="https://zh.wikipedia.org/wiki/Softmax%E5%87%BD%E6%95%B0" target="_blank" rel="noopener noreferrer" class="">softmax 函数（Wikipedia）</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2349,7 +2349,7 @@
 <li class=""><a href="https://bbycroft.net/llm" target="_blank" rel="noopener noreferrer" class="">LLM Visualization（可交互看多头注意力）</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2396,7 +2396,7 @@
 <li class=""><a href="https://blog.eleuther.ai/rotary-embeddings/" target="_blank" rel="noopener noreferrer" class="">Rotary Embeddings: A Relative Revolution（EleutherAI 图解）</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
@@ -2451,7 +2451,7 @@
 <li class=""><a href="https://en.wikipedia.org/wiki/Softmax_function#Smooth_arg_max" target="_blank" rel="noopener noreferrer" class="">softmax 与 temperature（Wikipedia）</a></li>
 </ul>]]></content>
         <author>
-            <name>柯寒</name>
+            <name>周期</name>
             <uri>https://github.com/xpzero</uri>
         </author>
         <category label="AI" term="AI"/>
