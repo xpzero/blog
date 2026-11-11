@@ -19,8 +19,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.94381216.css">
-<script src="/blog/assets/js/runtime~main.182061fa.js" defer="defer"></script>
-<script src="/blog/assets/js/main.1298276b.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.39cc10d1.js" defer="defer"></script>
+<script src="/blog/assets/js/main.0205f231.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -42,7 +42,7 @@
 <li class=""><code>stop_requested</code>：用户是否说过&quot;停&quot;。它是停止意图的字据，后面会看到判死逻辑靠它区分&quot;谁的责任&quot;。</li>
 </ul>
 <p>发送消息的同一时刻，后端就预建这条助手消息行（<code>status=&#x27;unfinished&#x27;</code>、写入 <code>deadline_at</code>），无一例外。用户消息和助手消息同时出现，之后的所有生成过程都挂在助手消息上。状态机如下：</p>
-<!-- -->
+<div></div>
 <p>两条规则贯穿始终：</p>
 <ul>
 <li class=""><strong>终态单向</strong>：<code>unfinished → finished</code> 一次性落定，之后任何写入都是 no-op，迟到的事件一律丢弃；</li>
@@ -59,7 +59,7 @@
 <div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_quZN">server/api/chat_stream.py（节选）</div><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">seq </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">database</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">append_fragment</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">message_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> type_</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> payload</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">active_runs</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">publish</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">message_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> payload</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> seq</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 带着库发的 seq 进内存广播</span><br></div></code></pre></div></div>
 <p><strong>先落库、后广播</strong>——内存里的每个事件必然已在数据库，两层永不分叉。<code>content</code> 与 <code>fragments</code> 的分工：一个管结果（终态时从 text 片段按 seq 拼出全文，一次写入），一个管过程。生成期间 <code>content</code> 为空，页面读到&quot;content 为空 + status=unfinished&quot;时，知道该去接实时流而不是展示半截静态文本。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="点停止意图的两层状态">点停止：意图的两层状态<a href="#点停止意图的两层状态" class="hash-link" aria-label="点停止：意图的两层状态的直接链接" title="点停止：意图的两层状态的直接链接" translate="no">​</a></h2>
-<p>后端不能直接杀掉执行线程——正在写数据库的事务、执行到一半的工具都可能留下不一致的状态。可行的做法是协作式停止：执行线程在安全边界上检查信号——读模型流的间隙、每个工具执行前后。检查到就停止 发起新动作，保存已有事实并收尾。</p>
+<p>后端不能直接杀掉执行线程——正在写数据库的事务、执行到一半的工具都可能留下不一致的状态。可行的做法是协作式停止：执行线程在安全边界上检查信号——读模型流的间隙、每个工具执行前后。检查到就停 止发起新动作，保存已有事实并收尾。</p>
 <p>但&quot;停止意图&quot;存在哪，决定了几个边角场景的语义。只用内存信号：点停止的同一瞬间进程崩溃，信号随进程消失，重启后没人知道用户说过停。只用数据库标志：活着的执行线程每次读流都要查一次库，代价不合理。所以意图分两层：</p>
 <div class="language-python codeBlockContainer_zGco theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockTitle_quZN">server/api/routes.py（stop 路由，节选）</div><div class="codeBlockContent_hN4B"><pre tabindex="0" class="prism-code language-python codeBlock_YCsJ thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_t_J6"><div class="token-line" style="color:#393A34"><span class="token plain">result </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> database</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">request_stop</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">session_id</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 第一层：stop_requested=1 落库（字据）</span><span class="token plain"></span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">stop_signals</span><span class="token punctuation" style="color:#393A34">.</span><span class="token builtin">set</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">session_id</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain">                 </span><span class="token comment" style="color:#999988;font-style:italic"># 第二层：内存 Event 置位（喊话）</span><br></div></code></pre></div></div>
 <ul>
@@ -71,7 +71,7 @@
 <p>如果停止发生在第一个字吐出之前，消息行会以 <code>stopped</code> 终态落库但没有任何内容，页面显示&quot;已为你停止输出&quot;。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="刷新页面resume-的三步裁决">刷新页面：resume 的三步裁决<a href="#刷新页面resume-的三步裁决" class="hash-link" aria-label="刷新页面：resume 的三步裁决的直接链接" title="刷新页面：resume 的三步裁决的直接链接" translate="no">​</a></h2>
 <p>刷新后页面重新加载，前端先拉历史，看到&quot;最后一条助手消息是 unfinished&quot;就连接恢复接口 <code>GET /api/sessions/{id}/resume</code>。这个接口做三步判断，每一步依据一个明确的事实：</p>
-<!-- -->
+<div></div>
 <p>第一步查库：会话里没有 <code>unfinished</code> 行，直接 204，前端只拉历史，零额外开销。</p>
 <p>第二步判断&quot;这个 unfinished 还活着吗&quot;，依据两个事实：<strong>超过 <code>deadline_at</code></strong>（兜底），或者<strong>进程内没有这条消息的 Run</strong>（精确）。这里需要定义 Run：<strong>正在执行的消息在进程内的运行态</strong>——一个事件缓冲加订阅者队列，随进程生灭。它不是执行状态的真相源（真相源是库），只是活消息的加速层：刷新重连时从这里回放，比读库重组快而且保真。</p>
 <p>关键推理是&quot;行在、Run 不在&quot;为什么能等价于&quot;进程重启过&quot;。因为发送路径的顺序是<strong>先建 Run、再预建数据库行</strong>：只要库里有 unfinished 行，Run 必然建过；进程内现在找不到，只可能是进程重启把内存清了。反过来，执行正常结束时终态落库与 Run 销毁同时发生，不会出现&quot;行还没落终态但 Run 已经没了&quot;的正常路径。所以这个判定是安全的——直接判死收口，不用等 180 秒的 deadline。</p>

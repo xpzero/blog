@@ -19,8 +19,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.94381216.css">
-<script src="/blog/assets/js/runtime~main.182061fa.js" defer="defer"></script>
-<script src="/blog/assets/js/main.1298276b.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.39cc10d1.js" defer="defer"></script>
+<script src="/blog/assets/js/main.0205f231.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -30,7 +30,7 @@
 <p>这两种现象对应上下文窗口的两个层面：<strong>硬上限</strong>（超过直接拒绝）和<strong>软失效</strong>（没超限但用不好）。前面几篇的知识刚好够把两者都解释清。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="窗口里装的比你以为的多">窗口里装的比你以为的多<a href="#窗口里装的比你以为的多" class="hash-link" aria-label="窗口里装的比你以为的多的直接链接" title="窗口里装的比你以为的多的直接链接" translate="no">​</a></h2>
 <p>上下文窗口（context window）是模型单次能处理的 token 总量上限——注意是<strong>总量</strong>，不是&quot;你能发多少&quot;。一个标称 128k 的窗口，实际是几方分的：</p>
-<!-- -->
+<div></div>
 <ul>
 <li class=""><strong>系统提示</strong>：<a class="" href="/blog/articles/llm-learning/token">第一篇</a>实测过，只发 1 个字符，服务端算了 4387 个 token——隐藏提示先占掉一块。</li>
 <li class=""><strong>历史对话</strong>：模型无状态，多轮对话靠每次重发全部历史，聊得越久这块越大。</li>
@@ -52,7 +52,7 @@
 <p>现在可以把常见的&quot;聊久了忘事&quot;拆成三种不同的病因：</p>
 <ol>
 <li class=""><strong>真被截断了。</strong> 历史超过窗口，应用只能丢弃最早的消息（或做摘要压缩），被丢掉的内容模型是真的看不到了。
-典型场景：聊 了一下午的会话里问&quot;我们最开始定的方案是什么&quot;，它给出一个从没出现过的答案——开头的消息早就不在发送的历史里了。</li>
+典型场景： 聊了一下午的会话里问&quot;我们最开始定的方案是什么&quot;，它给出一个从没出现过的答案——开头的消息早就不在发送的历史里了。</li>
 <li class=""><strong>迷失在中间。</strong> 历史都在窗口内，但你几十轮前说的那句关键设定，正好落在 U 形曲线的谷底。
 典型场景：第 3 轮说过&quot;回答都用英文&quot;，第 40 轮它突然改回中文；把设定重新说一遍立刻恢复——信息在，只是没被&quot;看&quot;到。</li>
 <li class=""><strong>注意力被带偏。</strong> 上下文里塞了大量无关内容（比如粘贴的长日志），相关信息的权重被稀释。

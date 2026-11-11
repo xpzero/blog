@@ -19,8 +19,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.94381216.css">
-<script src="/blog/assets/js/runtime~main.182061fa.js" defer="defer"></script>
-<script src="/blog/assets/js/main.1298276b.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.39cc10d1.js" defer="defer"></script>
+<script src="/blog/assets/js/main.0205f231.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -30,7 +30,7 @@
 <p>答案分两层：生成本来就是一个字一个字循环出来的（自回归），而这个循环里有一块巨大的重复计算被缓存掉了（KV Cache）。这篇把两层都说清，不需要任何环境，纯讲解。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="自回归生成就是不断地接龙">自回归：生成就是不断地&quot;接龙&quot;<a href="#自回归生成就是不断地接龙" class="hash-link" aria-label="自回归：生成就是不断地&quot;接龙&quot;的直接链接" title="自回归：生成就是不断地&quot;接龙&quot;的直接链接" translate="no">​</a></h2>
 <p><a class="" href="/blog/articles/llm-learning/transformer-overview">第三篇</a>讲过，模型单次只做一件事：给一段序列，算出<strong>下一个</strong> token 的概率表。那一整段回答怎么来的？把这个动作循环起来：</p>
-<!-- -->
+<div></div>
 <p>每生成一个 token，就把它接到序列末尾，<strong>整个序列重新作为输入</strong>再算一轮，直到模型选出一个特殊的&quot;结束&quot; token。这种&quot;自己的输出喂给自己当输入&quot;的方式叫<strong>自回归（autoregressive）</strong>。</p>
 <p>流式输出（打字机效果）不是什么动画技巧——服务端本来就是一轮循环产出一个 token，只是把每轮结果立刻推给你而已。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="问题每一轮都在重算同样的东西">问题：每一轮都在重算同样的东西<a href="#问题每一轮都在重算同样的东西" class="hash-link" aria-label="问题：每一轮都在重算同样的东西的直接链接" title="问题：每一轮都在重算同样的东西的直接链接" translate="no">​</a></h2>
@@ -39,8 +39,8 @@
 <p>前文 token 的 Key 和 Value <strong>每一轮都相同</strong>（内容没变、位置没变），却在被反复计算。回答越长，浪费越大：生成第 1000 个 token 时，前 999 个的 K、V 全是重复劳动。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="kv-cache算过的就存下来">KV Cache：算过的就存下来<a href="#kv-cache算过的就存下来" class="hash-link" aria-label="KV Cache：算过的就存下来的直接链接" title="KV Cache：算过的就存下来的直接链接" translate="no">​</a></h2>
 <p>解法直白：第一次算出的 K、V 存进显存，后续轮次直接取用。这块缓存就叫 <strong>KV Cache</strong>。</p>
-<!-- -->
-<p>于是生成过程天然分成两个阶段  ，速度特性完全不同：</p>
+<div></div>
+<p>于是生成过程天然分成两个  阶段，速度特性完全不同：</p>
 <ul>
 <li class=""><strong>预填充（prefill）</strong>：处理你的提示词。所有输入 token 的 K、V 都要从零算一遍，提示词越长这一步越慢——<strong>这就是首字等待的主要来源</strong>。好在这批计算可以并行做，算力打满。</li>
 <li class=""><strong>解码（decode）</strong>：逐字生成。每轮只算最新一个 token 的量，其余全部查缓存——所以后面的字来得快，且每个字的耗时大致恒定。</li>
@@ -52,7 +52,7 @@
 <ul>
 <li class=""><strong>长上下文的定价更贵</strong>：不只是计算多，缓存占着显存，同一张卡能同时服务的用户就少了。</li>
 <li class=""><strong>各家都在改注意力结构</strong>：让多组注意力头共享同一份 K、V（术语叫 GQA/MQA，链接见文末），缓存直接砍到几分之一，换来的是长上下文服务成本大降。</li>
-<li class=""><strong>&quot;提示词缓存&quot;（prompt caching）折扣</strong>：不少服务 对重复的提示词前缀收更低费用——因为这段前缀的 KV Cache 可以跨请求复用，预填充直接跳过。把系统提示等固定内容放在提示词<strong>开头</strong>，命中率更高。</li>
+<li class=""><strong>&quot;提示词缓存&quot;（prompt caching）折扣</strong>：不少 服务对重复的提示词前缀收更低费用——因为这段前缀的 KV Cache 可以跨请求复用，预填充直接跳过。把系统提示等固定内容放在提示词<strong>开头</strong>，命中率更高。</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="一个容易醒悟的误解">一个容易醒悟的误解<a href="#一个容易醒悟的误解" class="hash-link" aria-label="一个容易醒悟的误解的直接链接" title="一个容易醒悟的误解的直接链接" translate="no">​</a></h2>
 <p>&quot;多轮对话时，模型是不是记住了我们前面聊的？&quot;——第一篇实测隐藏系统提示时提过，服务端每次都要收到<strong>完整</strong>的对话历史。KV Cache 可能让服务端少算一点（前缀没变的部分直接复用），但那是<strong>性能优化，不是记忆</strong>：缓存里存的是算过的中间结果，请求结束随时可能被丢弃。对话的&quot;记忆&quot;始终靠调用方把历史原样重发，模型本身一轮结束就什么都不留。</p>

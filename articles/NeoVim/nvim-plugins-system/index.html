@@ -19,8 +19,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.94381216.css">
-<script src="/blog/assets/js/runtime~main.182061fa.js" defer="defer"></script>
-<script src="/blog/assets/js/main.1298276b.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.39cc10d1.js" defer="defer"></script>
+<script src="/blog/assets/js/main.0205f231.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -35,7 +35,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="lsp">LSP<a href="#lsp" class="hash-link" aria-label="LSP的直接链接" title="LSP的直接链接" translate="no">​</a></h2>
 <p><code>LSP</code>全称<code>Language Server Protocol</code>，即语言服务协议。就像<code>http</code>协议一样，服务端和客户端基于此收发送消息。
 <span style="background-color:orange;border-radius:2px;color:#fff;padding:0.2rem">基于此协议，语言服务端可以提供自动补全、定义跳转等功能给客户端</span></p>
-<!-- -->
+<div></div>
 <p>这样，各种语言服务端（c、java、ts等）就可以通过<code>LSP</code>提供服务给<code>LSP</code>的客户端，这里客户端就是nvim</p>
 <h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="nvim-lspconfig"><a href="https://github.com/neovim/nvim-lspconfig" target="_blank" rel="noopener noreferrer" class="">nvim-lspconfig</a><a href="#nvim-lspconfig" class="hash-link" aria-label="nvim-lspconfig的直接链接" title="nvim-lspconfig的直接链接" translate="no">​</a></h3>
 <p>提供了一套常用的语言服务配置，但是需要用户手动启动语言服务，且可能没有提供用户需要的语言服务。</p>
@@ -45,7 +45,7 @@
 <h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="mason-lspconfig"><a href="https://github.com/williamboman/mason-lspconfig.nvim" target="_blank" rel="noopener noreferrer" class="">mason-lspconfig</a><a href="#mason-lspconfig" class="hash-link" aria-label="mason-lspconfig的直接链接" title="mason-lspconfig的直接链接" translate="no">​</a></h3>
 <p>提供给mason一些命令安装语言服务并自动启动对应的语言服务</p>
 <h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="依赖关系">依赖关系<a href="#依赖关系" class="hash-link" aria-label="依赖关系的直接链接" title="依赖关系的直接链接" translate="no">​</a></h3>
-<!-- -->
+<div></div>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="自动补全">自动补全<a href="#自动补全" class="hash-link" aria-label="自动补全的直接链接" title="自动补全的直接链接" translate="no">​</a></h2>
 <p>现在写代码哪里少的了自动补全呢？自动补全的样式，大概如下</p>
 <p><img decoding="async" loading="lazy" alt="cmp" src="/blog/assets/images/cmp-0cd03dffe2da0c2059bb19f14a9ab40b.png" width="958" height="484" class="img_rDMc"></p>
@@ -64,7 +64,7 @@
 <h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="luasnip"><a href="https://github.com/L3MON4D3/LuaSnip" target="_blank" rel="noopener noreferrer" class="">LuaSnip</a><a href="#luasnip" class="hash-link" aria-label="luasnip的直接链接" title="luasnip的直接链接" translate="no">​</a></h3>
 <p>lua写的代码片段引擎。nvim-cmp的扩展，可以自定义代码片段。对如果配置结构和<code>vscode</code>相似，需要依赖<code>friendly-snippets</code></p>
 <h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="依赖关系-1">依赖关系<a href="#依赖关系-1" class="hash-link" aria-label="依赖关系的直接链接" title="依赖关系的直接链接" translate="no">​</a></h3>
-<!-- -->
+<div></div>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="语法高亮">语法高亮<a href="#语法高亮" class="hash-link" aria-label="语法高亮的直接链接" title="语法高亮的直接链接" translate="no">​</a></h2>
 <p>暂时只用了<code>nvim-treesitter</code></p>
 <h3 class="anchor anchorTargetStickyNavbar_Pa9U" id="nvim-treesitter"><a href="https://github.com/nvim-treesitter/nvim-treesitter" target="_blank" rel="noopener noreferrer" class="">nvim-treesitter</a><a href="#nvim-treesitter" class="hash-link" aria-label="nvim-treesitter的直接链接" title="nvim-treesitter的直接链接" translate="no">​</a></h3>
@@ -130,7 +130,7 @@
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="总结">总结<a href="#总结" class="hash-link" aria-label="总结的直接链接" title="总结的直接链接" translate="no">​</a></h2>
 <p>从开始倒腾nvim到现在，我学会了遇着问题钻进github的issue去看的问题处理方式，受益颇深。在issue里「前人栽树，后人乘凉」的思想体现的淋漓尽致。
 根据上面的处理方式，处理掉自己的问题之后，内心「哇」声一片，这不得专门跑回去点个赞！</p>
-<p>当然，这其中不停的去解决遇到的问题，也是一种痛并快乐着的过程  。</p>
+<p>当然，这其中不停的去解决遇到的问题，也是一种痛并快乐着  的过程。</p>
 <p>有问题才有成长，继续加油哦🤓</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="参考">参考<a href="#参考" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接" translate="no">​</a></h2>
 <p><a href="https://www.lazyvim.org/" target="_blank" rel="noopener noreferrer" class="">LazyVim</a></p>

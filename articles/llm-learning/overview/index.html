@@ -19,8 +19,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0"><link rel="stylesheet" href="/blog/assets/css/styles.94381216.css">
-<script src="/blog/assets/js/runtime~main.182061fa.js" defer="defer"></script>
-<script src="/blog/assets/js/main.1298276b.js" defer="defer"></script>
+<script src="/blog/assets/js/runtime~main.39cc10d1.js" defer="defer"></script>
+<script src="/blog/assets/js/main.0205f231.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -30,7 +30,7 @@
 <p>这个系列是把黑盒拆开的学习记录：**一句话发出去，到一段文字回过来，中间每一站都发生了什么。**不要求任何机器学习基础，会一点编程即可（示例代码都很短，看注释就能懂）。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="先看全貌">先看全貌<a href="#先看全貌" class="hash-link" aria-label="先看全貌的直接链接" title="先看全貌的直接链接" translate="no">​</a></h2>
 <p>一次最普通的模型调用，数据大致走这么一条线：</p>
-<!-- -->
+<div></div>
 <p>模型没有记忆、不会主动联网、也没有&quot;想法&quot;——它只做一件事：<strong>根据当前收到的全部文本，反复预测下一个词</strong>。后面每一篇拆一站。</p>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="阅读顺序">阅读顺序<a href="#阅读顺序" class="hash-link" aria-label="阅读顺序的直接链接" title="阅读顺序的直接链接" translate="no">​</a></h2>
 <p><strong>一、输入侧：文字怎么变成模型能算的东西</strong></p>
@@ -56,7 +56,7 @@
 </ol>
 <h2 class="anchor anchorTargetStickyNavbar_Pa9U" id="这个系列不讲什么">这个系列不讲什么<a href="#这个系列不讲什么" class="hash-link" aria-label="这个系列不讲什么的直接链接" title="这个系列不讲什么的直接链接" translate="no">​</a></h2>
 <ul>
-<li class=""><strong>  不讲数学推导。</strong> 涉及公式的地方只说明它在做什么，并给出原始论文或教程链接，有兴趣可以自行深入。</li>
+<li class=""><strong>不讲数学推导。</strong> 涉及公式的地方只说明它在做什么，并给出原始论文或教程链接，有兴趣可以自行深入。</li>
 <li class=""><strong>不讲 Prompt、RAG、Agent。</strong> 这些是&quot;怎么用模型&quot;的应用层话题，在 <a class="" href="/blog/articles/ai-agent-learning">Agent 学习</a>系列里——那边从<a class="" href="/blog/articles/ai-agent-learning/build-agent-01-single-call">第一次用代码调用大模型</a>开始，一步步手写出一个命令行 Agent。两个系列共用同一套环境（<code>uv</code> + <code>openai</code> SDK）。</li>
 <li class=""><strong>不承诺结论跨模型成立。</strong> 带实测的文章会注明用的模型和方法；换服务商、换版本，数字会变，但观察方法不变。</li>
 </ul>
